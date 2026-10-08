@@ -3,7 +3,17 @@
 // Owns: the list of public headers. Grows as each layer is built.
 #pragma once
 
+#include "cardLib/algorithms/control/drive_command.hpp"
+#include "cardLib/algorithms/control/drive_curve.hpp"
+#include "cardLib/algorithms/control/drive_mixer.hpp"
+#include "cardLib/algorithms/control/drive_pipeline.hpp"
+#include "cardLib/algorithms/control/exit_conditions.hpp"
+#include "cardLib/algorithms/control/mechanism_controller.hpp"
+#include "cardLib/algorithms/control/pid_controller.hpp"
+#include "cardLib/algorithms/control/slew_limiter.hpp"
 #include "cardLib/algorithms/math/angle.hpp"
 #include "cardLib/algorithms/math/ema_filter.hpp"
 #include "cardLib/algorithms/math/line_fit.hpp"
+#include "cardLib/algorithms/math/loop_timing.hpp"
 #include "cardLib/algorithms/math/pose.hpp"
+#include "cardLib/algorithms/motion/motion_result.hpp"
