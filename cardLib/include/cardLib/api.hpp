@@ -4,6 +4,7 @@
 #pragma once
 
 #include "cardLib/algorithms/calibration/calibration_math.hpp"
+#include "cardLib/algorithms/calibration/calibration_parser.hpp"
 #include "cardLib/algorithms/control/drive_command.hpp"
 #include "cardLib/algorithms/control/drive_curve.hpp"
 #include "cardLib/algorithms/control/drive_mixer.hpp"
@@ -52,6 +53,7 @@
 #include "cardLib/hardware/rotation_sensor.hpp"
 #include "cardLib/hardware/sensor_health.hpp"
 #include "cardLib/systems/black_box.hpp"
+#include "cardLib/systems/calibration_file.hpp"
 #include "cardLib/systems/calibration_routines.hpp"
 #include "cardLib/systems/display.hpp"
 #include "cardLib/systems/display_pages.hpp"
