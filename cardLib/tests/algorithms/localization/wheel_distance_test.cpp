@@ -30,3 +30,8 @@ TEST_CASE("max wheel speed is pi * D * rpm / 60") {
   CHECK(maxWheelSpeedInchesPerSecond(3.25, 450.0) ==
         doctest::Approx(std::numbers::pi * 3.25 * 450.0 / 60.0));
 }
+
+TEST_CASE("an Encoder's degrees on a 2.75 in wheel: 360 degrees is 2.75 pi inches") {
+  CHECK(encoderDegreesToInches(360.0, 2.75, 1.0) == doctest::Approx(2.75 * std::numbers::pi));
+  CHECK(encoderDegreesToInches(-90.0, 2.0, 2.0) == doctest::Approx(-std::numbers::pi));
+}

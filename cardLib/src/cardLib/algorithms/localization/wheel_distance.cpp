@@ -24,6 +24,10 @@ double motorEncoderInches(double degrees, double wheelDiameterInches, double ext
          driveScale;
 }
 
+double encoderDegreesToInches(double degrees, double wheelDiameterInches, double gearRatio) {
+  return degrees / DEGREES_PER_TURN * std::numbers::pi * wheelDiameterInches * gearRatio;
+}
+
 double adiEncoderInches(double ticks, double wheelDiameterInches, double gearRatio) {
   return ticks / ADI_TICKS_PER_TURN * std::numbers::pi * wheelDiameterInches * gearRatio;
 }

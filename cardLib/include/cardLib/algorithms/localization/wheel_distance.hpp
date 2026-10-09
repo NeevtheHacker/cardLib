@@ -14,6 +14,10 @@ double rotationSensorInches(double centidegrees, double wheelDiameterInches, dou
 double motorEncoderInches(double degrees, double wheelDiameterInches, double externalRatio,
                           double driveScale);
 
+// Any Encoder reading in degrees (rotation sensor or ADI encoder on a tracking wheel):
+// d = deg / 360 * pi * D * g.
+double encoderDegreesToInches(double degrees, double wheelDiameterInches, double gearRatio);
+
 // ADI (3-wire) encoder, 360 ticks per turn.
 double adiEncoderInches(double ticks, double wheelDiameterInches, double gearRatio);
 

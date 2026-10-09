@@ -35,6 +35,7 @@ enable_testing()
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
      ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/*_test.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/advanced/*_test.cpp
+     ${CMAKE_CURRENT_SOURCE_DIR}/hardware/*_test.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/sim/*_test.cpp)
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
