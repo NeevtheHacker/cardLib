@@ -33,6 +33,23 @@ DriveCommand DrivePipeline::update(const ChannelRequest& linear, const ChannelRe
           .rightMillivolts = speedToMillivolts(sides.right)};
 }
 
+DriveCommand DrivePipeline::updatePivot(const ChannelRequest& turn, Side lockedSide,
+                                        double dtSeconds) {
+  m_linearSlew.reset();
+  const std::int32_t millivolts =
+      speedToMillivolts(m_angularSlew.update(limitSpeed(turn), dtSeconds));
+  if (lockedSide == Side::Left) {
+    return {.leftMillivolts = 0,
+            .rightMillivolts = -millivolts,
+            .leftMode = SideMode::Held,
+            .rightMode = SideMode::Driven};
+  }
+  return {.leftMillivolts = millivolts,
+          .rightMillivolts = 0,
+          .leftMode = SideMode::Driven,
+          .rightMode = SideMode::Held};
+}
+
 void DrivePipeline::reset(double linearSpeed, double angularSpeed) {
   m_linearSlew.reset(linearSpeed);
   m_angularSlew.reset(angularSpeed);

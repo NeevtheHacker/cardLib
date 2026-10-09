@@ -7,6 +7,9 @@
 
 namespace cardLib {
 
+// A side of the drivetrain, e.g. the locked side of a pivot turn.
+enum class Side { Left, Right };
+
 // Driven: apply the voltage. Held: stop with brake mode Hold (the locked side of a pivot turn).
 enum class SideMode { Driven, Held };
 

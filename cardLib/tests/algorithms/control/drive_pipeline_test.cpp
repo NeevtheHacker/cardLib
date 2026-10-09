@@ -64,6 +64,35 @@ TEST_CASE("desaturation keeps the turn and output never exceeds 12000 mV") {
   CHECK(command.rightMillivolts == -12000);
 }
 
+TEST_CASE("pivot with the left side locked: left held at 0, right gets -u") {
+  DrivePipeline pipeline(NO_SLEW, NO_SLEW);
+  const DriveCommand command =
+      pipeline.updatePivot({.speed = 63.5, .error = 30.0}, Side::Left, DT);
+  CHECK(command.leftMillivolts == 0);
+  CHECK(command.leftMode == SideMode::Held);
+  CHECK(command.rightMillivolts == -6000);
+  CHECK(command.rightMode == SideMode::Driven);
+}
+
+TEST_CASE("pivot with the right side locked: left gets +u, right held at 0") {
+  DrivePipeline pipeline(NO_SLEW, NO_SLEW);
+  const DriveCommand command =
+      pipeline.updatePivot({.speed = 63.5, .error = 30.0}, Side::Right, DT);
+  CHECK(command.leftMillivolts == 6000);
+  CHECK(command.leftMode == SideMode::Driven);
+  CHECK(command.rightMillivolts == 0);
+  CHECK(command.rightMode == SideMode::Held);
+}
+
+TEST_CASE("pivot turn speed is limited and slewed like the angular channel") {
+  DrivePipeline pipeline(NO_SLEW, {.accelPerSecond = 500.0});
+  pipeline.reset(40.0, 0.0);
+  pipeline.updatePivot({.speed = 127.0, .error = 30.0, .limits = {.maxSpeed = 80.0}}, Side::Right,
+                       DT);
+  CHECK(pipeline.angularSpeed() == doctest::Approx(5.0));
+  CHECK(pipeline.linearSpeed() == doctest::Approx(0.0));
+}
+
 TEST_CASE("the slew remembers the speed before desaturation") {
   DrivePipeline pipeline(NO_SLEW, NO_SLEW);
   pipeline.update({.speed = 100.0, .error = 50.0}, {.speed = 50.0, .error = 50.0}, DT);

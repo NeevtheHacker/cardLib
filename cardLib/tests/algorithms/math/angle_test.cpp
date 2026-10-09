@@ -38,6 +38,21 @@ TEST_CASE("turnErrorDegrees honors a forced direction") {
   CHECK(turnErrorDegrees(180.0, 0.0, TurnDirection::Clockwise) == doctest::Approx(180.0));
 }
 
+TEST_CASE("directedTurnErrorDegrees forces the long way, then hands over to the shortest way") {
+  TurnDirection direction = TurnDirection::Clockwise;
+  CHECK(directedTurnErrorDegrees(0.0, 10.0, direction) == doctest::Approx(350.0));
+  CHECK(direction == TurnDirection::Clockwise);
+  CHECK(directedTurnErrorDegrees(0.0, 200.0, direction) == doctest::Approx(160.0));
+  CHECK(direction == TurnDirection::Shortest);
+  CHECK(directedTurnErrorDegrees(0.0, 361.0, direction) == doctest::Approx(-1.0));
+}
+
+TEST_CASE("directedTurnErrorDegrees with the shortest way already forced settles at once") {
+  TurnDirection direction = TurnDirection::CounterClockwise;
+  CHECK(directedTurnErrorDegrees(0.0, 30.0, direction) == doctest::Approx(-30.0));
+  CHECK(direction == TurnDirection::Shortest);
+}
+
 TEST_CASE("headingToPointDegrees uses 0 = +y, clockwise positive") {
   CHECK(headingToPointDegrees(0.0, 0.0, 0.0, 10.0) == doctest::Approx(0.0));
   CHECK(headingToPointDegrees(0.0, 0.0, 10.0, 0.0) == doctest::Approx(90.0));

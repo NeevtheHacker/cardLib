@@ -15,6 +15,12 @@ double wrapDegrees(double angleDegrees);
 double turnErrorDegrees(double targetDegrees, double currentDegrees,
                         TurnDirection direction = TurnDirection::Shortest);
 
+// Turn error for a whole turn with a forced direction. The forced direction holds only until the
+// shortest way agrees with it; then direction becomes Shortest, so a small overshoot near the
+// target is corrected back instead of starting another full turn.
+double directedTurnErrorDegrees(double targetDegrees, double currentDegrees,
+                                TurnDirection& direction);
+
 // Heading that faces (toX, toY) from (fromX, fromY): 0 = +y, clockwise positive.
 double headingToPointDegrees(double fromXInches, double fromYInches, double toXInches,
                              double toYInches);

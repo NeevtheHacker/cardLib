@@ -23,6 +23,16 @@ double turnErrorDegrees(double targetDegrees, double currentDegrees, TurnDirecti
   return error;
 }
 
+double directedTurnErrorDegrees(double targetDegrees, double currentDegrees,
+                                TurnDirection& direction) {
+  const double shortest = turnErrorDegrees(targetDegrees, currentDegrees);
+  const double forced = turnErrorDegrees(targetDegrees, currentDegrees, direction);
+  if (forced == shortest) {
+    direction = TurnDirection::Shortest;
+  }
+  return forced;
+}
+
 double headingToPointDegrees(double fromXInches, double fromYInches, double toXInches,
                              double toYInches) {
   return radiansToDegrees(std::atan2(toXInches - fromXInches, toYInches - fromYInches));

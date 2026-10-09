@@ -33,6 +33,10 @@ class DrivePipeline {
   DriveCommand update(const ChannelRequest& linear, const ChannelRequest& angular,
                       double dtSeconds);
 
+  // Pivot turn (SPEC section 8): the turn channel is limited and slewed like angular, then
+  // drives only the free side. Positive turn speed turns clockwise. Linear slew resets to 0.
+  DriveCommand updatePivot(const ChannelRequest& turn, Side lockedSide, double dtSeconds);
+
   // Seeds both slew limiters: zeros for a fresh start, the last speeds when chaining.
   void reset(double linearSpeed = 0.0, double angularSpeed = 0.0);
 
