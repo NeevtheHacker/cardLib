@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <optional>
 
+#include "cardLib/algorithms/localization/sensor_frame.hpp"
+
 namespace cardLib {
 
 class PlausibilityCheck {
@@ -19,6 +21,11 @@ class PlausibilityCheck {
   // on the first good reading after one (which only re-baselines).
   double update(std::optional<double> totalInches, double dtSeconds);
 
+  // update(), packaged for odometry: the change, and whether the sensor is usable. A single
+  // failed or rejected reading (and the re-baseline after it) is a usable zero; only a fault
+  // makes the sensor unusable (SPEC section 4).
+  WheelDelta measure(std::optional<double> totalInches, double dtSeconds);
+
   // Fresh baseline and a cleared fault, as setPose does.
   void rebaseline(std::optional<double> totalInches);
 
@@ -31,6 +38,9 @@ class PlausibilityCheck {
   bool flagged() const { return m_flagged; }
   bool faulted() const { return m_faulted; }
 
+  // How many readings have been rejected or failed since start-up.
+  std::uint32_t totalRejections() const { return m_totalRejections; }
+
  private:
   double reject();
 
@@ -42,6 +52,7 @@ class PlausibilityCheck {
   bool m_lastChangeMeasured = false;
   bool m_faulted = false;
   std::uint32_t m_rejectionsInARow = 0;
+  std::uint32_t m_totalRejections = 0;
 };
 
 }  // namespace cardLib

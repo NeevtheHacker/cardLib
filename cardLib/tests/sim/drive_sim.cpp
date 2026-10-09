@@ -38,16 +38,4 @@ void DriveSim::advance(double dtSeconds) {
   m_rightTotalInches += motion.rightDrive.inches;
 }
 
-SensorFrame DriveSim::takeFrame(double dtSeconds) {
-  SensorFrame frame;
-  frame.dtSeconds = dtSeconds;
-  frame.leftDrive = {leftReportedInches() - m_lastLeftReported, true};
-  frame.rightDrive = {rightReportedInches() - m_lastRightReported, true};
-  frame.imuValid = true;
-  frame.imuRotationDegrees = truePose().headingDegrees;
-  m_lastLeftReported = leftReportedInches();
-  m_lastRightReported = rightReportedInches();
-  return frame;
-}
-
 }  // namespace cardLib::sim

@@ -32,7 +32,7 @@ ArcOdometryConfig imuWithTwoWheels(double configuredVerticalX = SPIN_WHEEL_X) {
 SensorFrame spinFrame(double imuRotationDegrees, double stepDegrees) {
   const double stepRadians = degreesToRadians(stepDegrees);
   SensorFrame frame;
-  frame.imuValid = true;
+  frame.imuReadOk = true;
   frame.imuRotationDegrees = imuRotationDegrees;
   frame.verticalWheels[0] = {-SPIN_WHEEL_X * stepRadians, true};
   frame.horizontalWheel = {SPIN_WHEEL_Y * stepRadians, true};
@@ -44,7 +44,7 @@ SensorFrame spinFrame(double imuRotationDegrees, double stepDegrees) {
 SensorFrame straightFrame(double imuRotationDegrees, double forwardInches,
                           double sidewaysInches = 0.0) {
   SensorFrame frame;
-  frame.imuValid = true;
+  frame.imuReadOk = true;
   frame.imuRotationDegrees = imuRotationDegrees;
   frame.verticalWheels[0] = {forwardInches, true};
   frame.horizontalWheel = {sidewaysInches, true};
@@ -165,18 +165,18 @@ TEST_CASE("reset sets the pose and re-baselines the IMU, so there is no jump") {
   CHECK(state.pose.headingDegrees == doctest::Approx(45.0));
 }
 
-TEST_CASE("lost IMU: heading from drive encoders over W_eff, flagged degraded") {
+TEST_CASE("faulted IMU: heading from drive encoders over W_eff, flagged degraded") {
   ArcOdometry odometry(imuWithTwoWheels());
   odometry.reset({0.0, 0.0, 0.0});
   odometry.update(straightFrame(0.0, 0.0));
   SensorFrame frame = spinFrame(0.0, 10.0);
-  frame.imuValid = false;
+  frame.imuFaulted = true;
   const RobotState state = odometry.update(frame);
   CHECK(state.pose.headingDegrees == doctest::Approx(10.0));
   CHECK(state.health == OdometryHealth::Degraded);
 }
 
-TEST_CASE("lost horizontal wheel: no sideways motion, degraded") {
+TEST_CASE("faulted horizontal wheel: no sideways motion, degraded") {
   ArcOdometry odometry(imuWithTwoWheels());
   odometry.reset({0.0, 0.0, 0.0});
   odometry.update(straightFrame(0.0, 0.0));
@@ -188,7 +188,7 @@ TEST_CASE("lost horizontal wheel: no sideways motion, degraded") {
   CHECK(state.health == OdometryHealth::Degraded);
 }
 
-TEST_CASE("lost one of two vertical wheels: the other one carries on, degraded") {
+TEST_CASE("faulted one of two vertical wheels: the other one carries on, degraded") {
   ArcOdometry odometry({.verticalWheelCount = 2,
                         .verticalWheelXInches = {-6.0, 6.0},
                         .hasImu = true,
@@ -203,7 +203,7 @@ TEST_CASE("lost one of two vertical wheels: the other one carries on, degraded")
   CHECK(state.health == OdometryHealth::Degraded);
 }
 
-TEST_CASE("lost every vertical wheel: drive encoders take over, degraded") {
+TEST_CASE("faulted every vertical wheel: drive encoders take over, degraded") {
   ArcOdometry odometry(imuWithTwoWheels());
   odometry.reset({0.0, 0.0, 0.0});
   odometry.update(straightFrame(0.0, 0.0));
@@ -262,4 +262,28 @@ TEST_CASE("wheels turning while the IMU says still marks the wheel heading suspe
   }
   CHECK(state.wheelHeadingSuspect);
   CHECK(state.pose.headingDegrees == doctest::Approx(0.0));
+}
+
+TEST_CASE("one missed IMU read: no turn that loop, odometry stays OK, the next read catches up") {
+  ArcOdometry odometry(imuWithTwoWheels());
+  odometry.reset({0.0, 0.0, 0.0});
+  odometry.update(straightFrame(0.0, 0.0));
+  SensorFrame missed = straightFrame(0.0, 0.0);
+  missed.imuReadOk = false;
+  RobotState state = odometry.update(missed);
+  CHECK(state.health == OdometryHealth::Ok);
+  CHECK(state.pose.headingDegrees == doctest::Approx(0.0));
+  state = odometry.update(straightFrame(10.0, 0.0));
+  CHECK(state.pose.headingDegrees == doctest::Approx(10.0));
+  CHECK(state.health == OdometryHealth::Ok);
+}
+
+TEST_CASE("a rejected wheel reading is a usable zero: odometry stays OK") {
+  ArcOdometry odometry(imuWithTwoWheels());
+  odometry.reset({0.0, 0.0, 0.0});
+  odometry.update(straightFrame(0.0, 0.0));
+  SensorFrame rejected = straightFrame(0.0, 0.0);
+  rejected.verticalWheels[0] = {0.0, true};
+  rejected.horizontalWheel = {0.0, true};
+  CHECK(odometry.update(rejected).health == OdometryHealth::Ok);
 }

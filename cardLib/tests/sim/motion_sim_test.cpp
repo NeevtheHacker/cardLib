@@ -173,3 +173,48 @@ TEST_CASE("sim: an injected encoder jump trips the plausibility check and adds n
   CHECK(counted > travelled - 1.0);
   CHECK_FALSE(check.faulted());
 }
+
+TEST_CASE("sim: one rejected encoder reading in the middle of a move does not end it") {
+  SimRobot robot = makeRobot();
+  Move move({.linearGains = LINEAR_GAINS, .headingGains = HEADING_GAINS});
+  move.configure(24.0, {});
+  robot.failLeftEncoderReads(300, 1);
+  const SimRun run = robot.run(move);
+  robot.idle(SETTLE_IDLE_MS);
+  CHECK(run.result == MotionResult::Settled);
+  for (const TraceSample& sample : run.trace) {
+    CHECK(sample.health == OdometryHealth::Ok);
+  }
+  CHECK(std::abs(robot.drive().truePose().yInches - 24.0) < 1.0);
+}
+
+TEST_CASE("sim: two rejected readings in a row are still not a fault") {
+  SimRobot robot = makeRobot();
+  Move move({.linearGains = LINEAR_GAINS, .headingGains = HEADING_GAINS});
+  move.configure(24.0, {});
+  robot.failLeftEncoderReads(300, 2);
+  CHECK(robot.run(move).result == MotionResult::Settled);
+}
+
+TEST_CASE("sim: three rejected readings in a row, allowDegraded off: SensorFault") {
+  SimRobot robot = makeRobot();
+  Move move({.linearGains = LINEAR_GAINS, .headingGains = HEADING_GAINS});
+  move.configure(24.0, {});
+  robot.failLeftEncoderReads(300, 3);
+  const SimRun run = robot.run(move);
+  CHECK(run.result == MotionResult::SensorFault);
+  CHECK(run.elapsedMs >= 320u);
+  CHECK(run.elapsedMs <= 340u);
+}
+
+TEST_CASE("sim: three rejected readings in a row, allowDegraded on: carries on on the fallback") {
+  SimRobot robot = makeRobot();
+  Move move({.linearGains = LINEAR_GAINS, .headingGains = HEADING_GAINS});
+  move.configure(24.0, {.allowDegraded = true});
+  robot.failLeftEncoderReads(300, 3);
+  const SimRun run = robot.run(move);
+  robot.idle(SETTLE_IDLE_MS);
+  CHECK(run.result == MotionResult::Settled);
+  CHECK(run.trace.back().health == OdometryHealth::Degraded);
+  CHECK(std::abs(robot.drive().truePose().yInches - 24.0) < 1.0);
+}

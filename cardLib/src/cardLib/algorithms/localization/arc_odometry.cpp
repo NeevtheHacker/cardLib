@@ -81,13 +81,18 @@ ArcOdometry::HeadingChange ArcOdometry::headingChange(const SensorFrame& frame) 
   return {};
 }
 
+// A faulted IMU hands heading to the wheels. A single missed read is no turn this loop; the
+// baseline is kept, so the next good read measures the whole turn since the last one.
 std::optional<double> ArcOdometry::imuHeadingChange(const SensorFrame& frame) {
   if (!m_config.hasImu) {
     return std::nullopt;
   }
-  if (!frame.imuValid) {
+  if (frame.imuFaulted) {
     m_hasImuBaseline = false;
     return std::nullopt;
+  }
+  if (!frame.imuReadOk) {
+    return 0.0;
   }
   if (!m_hasImuBaseline) {
     m_lastImuRotationDegrees = frame.imuRotationDegrees;
@@ -104,7 +109,7 @@ std::optional<double> ArcOdometry::imuHeadingChange(const SensorFrame& frame) {
 std::optional<double> ArcOdometry::trackingWheelHeadingChange(const SensorFrame& frame) const {
   const auto& wheels = frame.verticalWheels;
   const auto& offsets = m_config.verticalWheelXInches;
-  if (m_config.verticalWheelCount < 2 || !wheels[0].valid || !wheels[1].valid ||
+  if (m_config.verticalWheelCount < 2 || !wheels[0].usable || !wheels[1].usable ||
       offsets[1] == offsets[0]) {
     return std::nullopt;
   }
@@ -112,7 +117,7 @@ std::optional<double> ArcOdometry::trackingWheelHeadingChange(const SensorFrame&
 }
 
 std::optional<double> ArcOdometry::driveHeadingChange(const SensorFrame& frame) const {
-  if (!frame.leftDrive.valid || !frame.rightDrive.valid ||
+  if (!frame.leftDrive.usable || !frame.rightDrive.usable ||
       m_config.effectiveTrackWidthInches <= 0.0) {
     return std::nullopt;
   }
@@ -125,7 +130,7 @@ std::optional<double> ArcOdometry::forwardChange(const SensorFrame& frame,
   double sum = 0.0;
   std::size_t used = 0;
   for (std::size_t i = 0; i < m_config.verticalWheelCount && i < MAX_VERTICAL_WHEELS; ++i) {
-    if (frame.verticalWheels[i].valid) {
+    if (frame.verticalWheels[i].usable) {
       sum += frame.verticalWheels[i].inches + m_config.verticalWheelXInches[i] * headingRadians;
       ++used;
     }
@@ -144,14 +149,14 @@ std::optional<double> ArcOdometry::driveForwardChange(const SensorFrame& frame,
   const double halfTrack = m_config.effectiveTrackWidthInches / 2.0;
   const double left = frame.leftDrive.inches - halfTrack * headingRadians;
   const double right = frame.rightDrive.inches + halfTrack * headingRadians;
-  if (frame.leftDrive.valid && frame.rightDrive.valid) {
+  if (frame.leftDrive.usable && frame.rightDrive.usable) {
     return (left + right) / 2.0;
   }
   m_degradedThisLoop = true;
-  if (frame.leftDrive.valid) {
+  if (frame.leftDrive.usable) {
     return left;
   }
-  if (frame.rightDrive.valid) {
+  if (frame.rightDrive.usable) {
     return right;
   }
   return std::nullopt;
@@ -162,7 +167,7 @@ double ArcOdometry::sidewaysChange(const SensorFrame& frame, double headingRadia
   if (!m_config.hasHorizontalWheel) {
     return 0.0;
   }
-  if (!frame.horizontalWheel.valid) {
+  if (!frame.horizontalWheel.usable) {
     m_degradedThisLoop = true;
     return 0.0;
   }

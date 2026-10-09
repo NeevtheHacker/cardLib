@@ -9,6 +9,9 @@ namespace cardLib {
 
 class SensorHealth {
  public:
+  // One failed read is a glitch; this many in a row is a fault (SPEC section 4).
+  static constexpr std::uint32_t FAILURES_TO_FAULT = 3;
+
   // Call once per read with whether PROS returned a value.
   void record(bool readOk) {
     if (readOk) {
@@ -22,6 +25,7 @@ class SensorHealth {
 
   bool answering() const { return m_everAnswered && m_failuresInARow == 0; }
   bool everAnswered() const { return m_everAnswered; }
+  bool faulted() const { return m_failuresInARow >= FAILURES_TO_FAULT; }
   std::uint32_t failuresInARow() const { return m_failuresInARow; }
   std::uint32_t totalFailures() const { return m_totalFailures; }
 

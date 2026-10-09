@@ -26,9 +26,6 @@ class DriveSim {
   void apply(const DriveCommand& command) { m_command = command; }
   void advance(double dtSeconds);
 
-  // Readings since the last call: drive encoder deltas and a perfect IMU.
-  SensorFrame takeFrame(double dtSeconds);
-
   // Makes the left encoder report a jump the wheel never made (slip, a glitch).
   void injectLeftEncoderJump(double inches) { m_leftReportOffsetInches += inches; }
 
@@ -50,8 +47,6 @@ class DriveSim {
   double m_leftTotalInches = 0.0;
   double m_rightTotalInches = 0.0;
   double m_leftReportOffsetInches = 0.0;
-  double m_lastLeftReported = 0.0;
-  double m_lastRightReported = 0.0;
 };
 
 }  // namespace cardLib::sim

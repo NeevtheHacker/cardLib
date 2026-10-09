@@ -13,11 +13,13 @@ namespace cardLib {
 constexpr std::size_t MAX_VERTICAL_WHEELS = 2;
 constexpr std::size_t MAX_DISTANCE_SENSORS = 4;
 
-// Distance a wheel rolled since last loop. valid = false: the reading failed or was rejected
-// this loop, and inches is 0 (never a reused old delta).
+// Distance a wheel rolled since last loop (SPEC section 4). On a loop whose reading failed or
+// was rejected, and on the re-baseline loop after it, inches is 0 (never a reused old delta)
+// and the wheel is still usable. usable = false only once the sensor is faulted (three bad
+// readings in a row) or isn't answering at all; only then does odometry use a fallback.
 struct WheelDelta {
   double inches = 0.0;
-  bool valid = false;
+  bool usable = false;
 };
 
 // A distance sensor reading, already corrected by its calibrated gain and offset.
@@ -38,8 +40,11 @@ struct SensorFrame {
   WheelDelta leftDrive = {};
   WheelDelta rightDrive = {};
 
-  // Raw IMU rotation (unscaled, clockwise positive, continuous) and turn rate.
-  bool imuValid = false;
+  // Raw IMU rotation (unscaled, clockwise positive, continuous) and turn rate. imuReadOk: this
+  // loop's read worked (a missed read just waits for the next one). imuFaulted: three failed
+  // reads in a row; odometry switches to the wheel-heading fallback.
+  bool imuReadOk = false;
+  bool imuFaulted = false;
   double imuRotationDegrees = 0.0;
   double imuGyroRateDegreesPerSecond = 0.0;
 

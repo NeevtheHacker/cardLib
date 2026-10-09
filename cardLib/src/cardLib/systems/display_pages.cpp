@@ -118,7 +118,14 @@ void renderPose(const DisplayData& data, DisplayScreen& screen) {
   setLine(screen[6], "faults:%s%s%s%s%s%s", odometry.verticalWheelFaulted[0] ? " V1" : "",
           odometry.verticalWheelFaulted[1] ? " V2" : "",
           odometry.horizontalWheelFaulted ? " H" : "", odometry.leftDriveFaulted ? " L" : "",
-          odometry.rightDriveFaulted ? " R" : "", odometry.imuAnswering ? "" : " IMU");
+          odometry.rightDriveFaulted ? " R" : "", odometry.imuFaulted ? " IMU" : "");
+  const SensorRejections& rejects = odometry.rejections;
+  setLine(screen[7], "rejects V%lu/%lu H%lu L%lu R%lu IMU%lu",
+          static_cast<unsigned long>(rejects.verticalWheels[0]),
+          static_cast<unsigned long>(rejects.verticalWheels[1]),
+          static_cast<unsigned long>(rejects.horizontalWheel),
+          static_cast<unsigned long>(rejects.leftDrive),
+          static_cast<unsigned long>(rejects.rightDrive), static_cast<unsigned long>(rejects.imu));
 }
 
 // Startup problems, most important first, as many as fit above the black-box line.

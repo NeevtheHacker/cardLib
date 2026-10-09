@@ -15,6 +15,7 @@ namespace {
 constexpr std::uint32_t POSE_TELEMETRY_EVERY_LOOPS = 10;  // 10 Hz
 constexpr double MICROSECONDS_PER_SECOND = 1e6;
 constexpr std::uint32_t RESET_POLL_MS = 2;
+constexpr std::uint32_t IMU_FAILURES_TO_FAULT = 3;
 }  // namespace
 
 OdometryTask::OdometryTask(const ChassisConfig& config, PoseEstimator& estimator,
@@ -113,6 +114,8 @@ void OdometryTask::rebaselineSensors() {
   m_horizontalCheck.rebaseline(horizontalWheelInches());
   m_leftDriveCheck.rebaseline(driveInches(m_config.drive.left));
   m_rightDriveCheck.rebaseline(driveInches(m_config.drive.right));
+  m_imuFailuresInARow = 0;
+  m_imuFaulted = false;
 }
 
 SensorFrame OdometryTask::buildSensorFrame(double dtSeconds) {
@@ -126,13 +129,6 @@ SensorFrame OdometryTask::buildSensorFrame(double dtSeconds) {
 }
 
 namespace {
-
-// A change only counts when it was actually measured and the sensor isn't faulted.
-WheelDelta measure(PlausibilityCheck& check, std::optional<double> totalInches,
-                   double dtSeconds) {
-  const double change = check.update(totalInches, dtSeconds);
-  return {change, check.lastChangeMeasured() && !check.faulted()};
-}
 
 // Keeps the last good reading as the published raw total, and passes the reading on.
 std::optional<double> remember(std::optional<double> reading, double& total) {
@@ -148,20 +144,20 @@ void OdometryTask::readTrackingWheels(SensorFrame& frame, double dtSeconds) {
   for (std::size_t i = 0; i < MAX_VERTICAL_WHEELS; ++i) {
     if (m_verticalWheels[i] != nullptr) {
       const auto inches = remember(verticalWheelInches(i), m_totals.verticalWheelInches[i]);
-      frame.verticalWheels[i] = measure(m_verticalChecks[i], inches, dtSeconds);
+      frame.verticalWheels[i] = m_verticalChecks[i].measure(inches, dtSeconds);
     }
   }
   if (m_config.sensors.horizontalWheel != nullptr) {
     const auto inches = remember(horizontalWheelInches(), m_totals.horizontalWheelInches);
-    frame.horizontalWheel = measure(m_horizontalCheck, inches, dtSeconds);
+    frame.horizontalWheel = m_horizontalCheck.measure(inches, dtSeconds);
   }
 }
 
 void OdometryTask::readDrive(SensorFrame& frame, double dtSeconds) {
   const auto left = remember(driveInches(m_config.drive.left), m_totals.leftDriveInches);
   const auto right = remember(driveInches(m_config.drive.right), m_totals.rightDriveInches);
-  frame.leftDrive = measure(m_leftDriveCheck, left, dtSeconds);
-  frame.rightDrive = measure(m_rightDriveCheck, right, dtSeconds);
+  frame.leftDrive = m_leftDriveCheck.measure(left, dtSeconds);
+  frame.rightDrive = m_rightDriveCheck.measure(right, dtSeconds);
 }
 
 void OdometryTask::readImu(SensorFrame& frame) {
@@ -171,7 +167,16 @@ void OdometryTask::readImu(SensorFrame& frame) {
   }
   const std::optional<double> rotation =
       remember(imu->sensor->readRotationDegrees(), m_totals.imuRotationDegrees);
-  frame.imuValid = rotation.has_value();
+  frame.imuReadOk = rotation.has_value();
+  if (frame.imuReadOk) {
+    m_imuFailuresInARow = 0;
+  } else {
+    ++m_imuFailuresInARow;
+    ++m_imuRejections;
+  }
+  // Three failed reads in a row fault the IMU until the next setPose (SPEC section 4).
+  m_imuFaulted = m_imuFaulted || m_imuFailuresInARow >= IMU_FAILURES_TO_FAULT;
+  frame.imuFaulted = m_imuFaulted;
   frame.imuRotationDegrees = rotation.value_or(0.0);
   frame.imuGyroRateDegreesPerSecond = imu->sensor->readGyroRateDegreesPerSecond().value_or(0.0);
 }
@@ -241,11 +246,14 @@ void OdometryTask::publish(const RobotState& state, const SensorFrame& frame) {
       shared->verticalWheelFaulted[i] = m_verticalChecks[i].faulted();
     }
     shared->horizontalWheelFaulted = m_horizontalCheck.faulted();
-    shared->imuAnswering = frame.imuValid;
+    shared->imuAnswering = frame.imuReadOk;
+    shared->imuFaulted = frame.imuFaulted;
+    shared->rejections = rejectionCounts();
     shared->leftDriveFaulted = m_leftDriveCheck.faulted();
     shared->rightDriveFaulted = m_rightDriveCheck.faulted();
-    shared->driveMotorMissing = (left != nullptr && left->answeringCount() < left->size()) ||
-                                (right != nullptr && right->answeringCount() < right->size());
+    // A drive motor is missing only after three failed reads in a row, not on one glitch.
+    shared->driveMotorMissing = (left != nullptr && left->anyMotorFaulted()) ||
+                                (right != nullptr && right->anyMotorFaulted());
     shared->distances = frame.distances;
     shared->totals = m_totals;
     shared->loopOverruns = m_loopOverruns;
@@ -255,6 +263,18 @@ void OdometryTask::publish(const RobotState& state, const SensorFrame& frame) {
     m_telemetry.push({pros::millis(), TelemetryChannel::Pose, state.pose.xInches,
                       state.pose.yInches, state.pose.headingDegrees});
   }
+}
+
+SensorRejections OdometryTask::rejectionCounts() const {
+  SensorRejections counts;
+  for (std::size_t i = 0; i < MAX_VERTICAL_WHEELS; ++i) {
+    counts.verticalWheels[i] = m_verticalChecks[i].totalRejections();
+  }
+  counts.horizontalWheel = m_horizontalCheck.totalRejections();
+  counts.leftDrive = m_leftDriveCheck.totalRejections();
+  counts.rightDrive = m_rightDriveCheck.totalRejections();
+  counts.imu = m_imuRejections;
+  return counts;
 }
 
 }  // namespace cardLib

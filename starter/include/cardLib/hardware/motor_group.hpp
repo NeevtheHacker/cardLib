@@ -44,6 +44,16 @@ class MotorGroup : public Encoder {
   // Motors that answered the last readDegrees().
   std::size_t answeringCount() const { return m_answeringCount; }
 
+  // True once any motor has missed three reads in a row; a single missed read isn't a fault.
+  bool anyMotorFaulted() const {
+    for (std::size_t i = 0; i < m_count; ++i) {
+      if (m_health[i].faulted()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   std::optional<double> currentAmps(std::size_t index) const;
   std::optional<double> temperatureCelsius(std::size_t index) const;
   std::optional<double> velocityRpm(std::size_t index) const;  // output shaft, signed

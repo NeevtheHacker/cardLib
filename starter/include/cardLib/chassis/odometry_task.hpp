@@ -29,17 +29,29 @@ struct SensorTotals {
   double imuRotationDegrees = 0.0;
 };
 
+// How many readings each sensor has had rejected or failed since start-up (SPEC section 4: a
+// single bad reading is logged, not a fault).
+struct SensorRejections {
+  std::array<std::uint32_t, MAX_VERTICAL_WHEELS> verticalWheels = {};
+  std::uint32_t horizontalWheel = 0;
+  std::uint32_t leftDrive = 0;
+  std::uint32_t rightDrive = 0;
+  std::uint32_t imu = 0;
+};
+
 // Everything odometry publishes each loop: the state plus which sensors are working.
 struct OdometrySnapshot {
   RobotState state = {};
   std::array<bool, MAX_VERTICAL_WHEELS> verticalWheelFaulted = {};
   bool horizontalWheelFaulted = false;
-  bool imuAnswering = true;
+  bool imuAnswering = true;  // this loop's read worked
+  bool imuFaulted = false;   // three failed reads in a row
   bool leftDriveFaulted = false;
   bool rightDriveFaulted = false;
   bool driveMotorMissing = false;  // a drive motor stopped answering: motions report SensorFault
   std::array<DistanceReading, MAX_DISTANCE_SENSORS> distances = {};
   SensorTotals totals = {};
+  SensorRejections rejections = {};
   std::uint32_t loopOverruns = 0;
 };
 
@@ -72,6 +84,7 @@ class OdometryTask {
   void readImu(SensorFrame& frame);
   void readDistances(SensorFrame& frame);
   void publish(const RobotState& state, const SensorFrame& frame);
+  SensorRejections rejectionCounts() const;
   std::optional<double> verticalWheelInches(std::size_t index);
   std::optional<double> horizontalWheelInches();
   std::optional<double> driveInches(MotorGroup* group);
@@ -90,6 +103,9 @@ class OdometryTask {
   Pose m_resetPose = {};
   std::atomic<std::uint32_t> m_resetsApplied{0};
   SensorTotals m_totals = {};
+  std::uint32_t m_imuFailuresInARow = 0;
+  std::uint32_t m_imuRejections = 0;
+  bool m_imuFaulted = false;
   std::uint32_t m_loopOverruns = 0;
   std::uint32_t m_loopCount = 0;
   pros::task_t m_task = nullptr;

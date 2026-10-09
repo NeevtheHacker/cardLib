@@ -45,8 +45,14 @@ void PlausibilityCheck::rebaseline(std::optional<double> totalInches) {
   m_rejectionsInARow = 0;
 }
 
+WheelDelta PlausibilityCheck::measure(std::optional<double> totalInches, double dtSeconds) {
+  const double change = update(totalInches, dtSeconds);
+  return {change, !m_faulted};
+}
+
 double PlausibilityCheck::reject() {
   m_flagged = true;
+  ++m_totalRejections;
   m_hasBaseline = false;
   ++m_rejectionsInARow;
   if (m_rejectionsInARow >= REJECTIONS_TO_FAULT) {

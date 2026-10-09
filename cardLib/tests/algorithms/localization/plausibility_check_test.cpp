@@ -115,3 +115,47 @@ TEST_CASE("lastChangeMeasured is true only for an accepted change") {
   check.update(std::nullopt, DT);
   CHECK_FALSE(check.lastChangeMeasured());
 }
+
+TEST_CASE("measure: one rejected reading is a zero delta from a sensor that is still usable") {
+  PlausibilityCheck check(MAX_SPEED);
+  check.measure(0.0, DT);
+  const WheelDelta rejected = check.measure(9.0, DT);
+  CHECK(rejected.inches == doctest::Approx(0.0));
+  CHECK(rejected.usable);
+  const WheelDelta failed = check.measure(std::nullopt, DT);
+  CHECK(failed.inches == doctest::Approx(0.0));
+  CHECK(failed.usable);
+}
+
+TEST_CASE("measure: the re-baseline loop after a reject is usable too, then normal") {
+  PlausibilityCheck check(MAX_SPEED);
+  check.measure(0.0, DT);
+  check.measure(9.0, DT);
+  const WheelDelta rebaseline = check.measure(9.2, DT);
+  CHECK(rebaseline.inches == doctest::Approx(0.0));
+  CHECK(rebaseline.usable);
+  const WheelDelta normal = check.measure(9.6, DT);
+  CHECK(normal.inches == doctest::Approx(0.4));
+  CHECK(normal.usable);
+}
+
+TEST_CASE("measure: three rejections in a row make the sensor unusable until rebaseline") {
+  PlausibilityCheck check(MAX_SPEED);
+  check.measure(0.0, DT);
+  CHECK(check.measure(std::nullopt, DT).usable);
+  CHECK(check.measure(std::nullopt, DT).usable);
+  CHECK_FALSE(check.measure(std::nullopt, DT).usable);
+  CHECK_FALSE(check.measure(0.0, DT).usable);
+  CHECK_FALSE(check.measure(0.1, DT).usable);
+  check.rebaseline(0.1);
+  CHECK(check.measure(0.2, DT).usable);
+}
+
+TEST_CASE("every rejection is counted, for the log") {
+  PlausibilityCheck check(MAX_SPEED);
+  check.measure(0.0, DT);
+  check.measure(std::nullopt, DT);
+  check.measure(0.0, DT);
+  check.measure(5.0, DT);
+  CHECK(check.totalRejections() == 2u);
+}
