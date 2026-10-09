@@ -41,6 +41,12 @@ TEMPLATE_FILES=$(call rwildcard,$(INCDIR)/$(LIBNAME)/,*.hpp) \
 
 .DEFAULT_GOAL=quick
 
+# The stock library rule in common.mk runs "mkdir $(BINDIR)", which logs an ignored error
+# whenever bin/ already exists. For that one target, BINDIR expands to "-p ./bin" so the mkdir
+# becomes "mkdir -p ./bin". "private" keeps the override out of its prerequisites' recipes.
+# Kept here rather than in common.mk, which a PROS kernel upgrade overwrites.
+$(BINDIR)/$(LIBNAME).a: private BINDIR := -p $(ROOT)/bin
+
 ################################################################################
 ################################################################################
 ########## Nothing below this line should be edited by typical users ###########
