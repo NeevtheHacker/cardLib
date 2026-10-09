@@ -62,6 +62,15 @@ const StartupReport& Chassis::calibrate() {
   return m_report;
 }
 
+bool Chassis::setCalibration(const Calibration& calibration) {
+  if (m_tasksStarted) {
+    return false;
+  }
+  m_config.calibration = calibration;
+  m_defaultOdometry = ArcOdometry(makeArcOdometryConfig(m_config));
+  return true;
+}
+
 void Chassis::registerDevices(PortRegistry& registry) const {
   const DriveConfig& drive = m_config.drive;
   const SensorConfig& sensors = m_config.sensors;
@@ -260,6 +269,10 @@ void Chassis::tank(double leftStick, double rightStick) {
 
 void Chassis::arcade(double forwardStick, double turnStick) {
   m_motion.drive(m_driver.arcade(forwardStick, turnStick));
+}
+
+void Chassis::driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts) {
+  m_motion.drive({leftMillivolts, rightMillivolts});
 }
 
 void Chassis::setDriverBrake(BrakeMode mode) {

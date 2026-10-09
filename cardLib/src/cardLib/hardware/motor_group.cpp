@@ -145,4 +145,15 @@ std::optional<double> MotorGroup::temperatureCelsius(std::size_t index) const {
   return celsius;
 }
 
+std::optional<double> MotorGroup::velocityRpm(std::size_t index) const {
+  if (index >= m_count) {
+    return std::nullopt;
+  }
+  const double rpm = pros::c::motor_get_actual_velocity(signedPort(index));
+  if (!std::isfinite(rpm)) {
+    return std::nullopt;
+  }
+  return rpm;
+}
+
 }  // namespace cardLib

@@ -18,6 +18,17 @@
 
 namespace cardLib {
 
+// The last good reading of each sensor as a running total, in inches with the current
+// calibration (IMU raw and unscaled). Calibration routines and test modes use these, so no
+// other task ever reads a sensor the odometry task owns.
+struct SensorTotals {
+  std::array<double, MAX_VERTICAL_WHEELS> verticalWheelInches = {};
+  double horizontalWheelInches = 0.0;
+  double leftDriveInches = 0.0;
+  double rightDriveInches = 0.0;
+  double imuRotationDegrees = 0.0;
+};
+
 // Everything odometry publishes each loop: the state plus which sensors are working.
 struct OdometrySnapshot {
   RobotState state = {};
@@ -28,6 +39,7 @@ struct OdometrySnapshot {
   bool rightDriveFaulted = false;
   bool driveMotorMissing = false;  // a drive motor stopped answering: motions report SensorFault
   std::array<DistanceReading, MAX_DISTANCE_SENSORS> distances = {};
+  SensorTotals totals = {};
   std::uint32_t loopOverruns = 0;
 };
 
@@ -77,6 +89,7 @@ class OdometryTask {
   bool m_resetPending = false;
   Pose m_resetPose = {};
   std::atomic<std::uint32_t> m_resetsApplied{0};
+  SensorTotals m_totals = {};
   std::uint32_t m_loopOverruns = 0;
   std::uint32_t m_loopCount = 0;
   pros::task_t m_task = nullptr;

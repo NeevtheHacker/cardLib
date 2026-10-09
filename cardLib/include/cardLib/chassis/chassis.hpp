@@ -57,6 +57,10 @@ class Chassis {
   // Re-runs IMU calibration and the drift check. The robot must be still.
   const StartupReport& calibrate();
 
+  // Replaces the calibration values, e.g. after loading the SD file. Only before
+  // initialize(); false once the tasks are running.
+  bool setCalibration(const Calibration& calibration);
+
   // Pose. setPose is applied by the odometry task within one loop; false if it timed out.
   bool setPose(double xInches, double yInches, double headingDegrees);
   Pose getPose();
@@ -84,6 +88,8 @@ class Chassis {
   // Driver control, -127 to 127. Either one cancels a running motion.
   void tank(double leftStick, double rightStick);
   void arcade(double forwardStick, double turnStick);
+  // Raw side voltages through the motion task, no curves. For test and calibration routines.
+  void driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts);
   void setDriverBrake(BrakeMode mode);
   BrakeMode driverBrake() const { return m_driverBrake.load(); }
 

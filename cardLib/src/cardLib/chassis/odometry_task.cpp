@@ -128,22 +128,34 @@ WheelDelta measure(PlausibilityCheck& check, std::optional<double> totalInches,
   return {change, check.lastChangeMeasured() && !check.faulted()};
 }
 
+// Keeps the last good reading as the published raw total, and passes the reading on.
+std::optional<double> remember(std::optional<double> reading, double& total) {
+  if (reading.has_value()) {
+    total = *reading;
+  }
+  return reading;
+}
+
 }  // namespace
 
 void OdometryTask::readTrackingWheels(SensorFrame& frame, double dtSeconds) {
   for (std::size_t i = 0; i < MAX_VERTICAL_WHEELS; ++i) {
     if (m_verticalWheels[i] != nullptr) {
-      frame.verticalWheels[i] = measure(m_verticalChecks[i], verticalWheelInches(i), dtSeconds);
+      const auto inches = remember(verticalWheelInches(i), m_totals.verticalWheelInches[i]);
+      frame.verticalWheels[i] = measure(m_verticalChecks[i], inches, dtSeconds);
     }
   }
   if (m_config.sensors.horizontalWheel != nullptr) {
-    frame.horizontalWheel = measure(m_horizontalCheck, horizontalWheelInches(), dtSeconds);
+    const auto inches = remember(horizontalWheelInches(), m_totals.horizontalWheelInches);
+    frame.horizontalWheel = measure(m_horizontalCheck, inches, dtSeconds);
   }
 }
 
 void OdometryTask::readDrive(SensorFrame& frame, double dtSeconds) {
-  frame.leftDrive = measure(m_leftDriveCheck, driveInches(m_config.drive.left), dtSeconds);
-  frame.rightDrive = measure(m_rightDriveCheck, driveInches(m_config.drive.right), dtSeconds);
+  const auto left = remember(driveInches(m_config.drive.left), m_totals.leftDriveInches);
+  const auto right = remember(driveInches(m_config.drive.right), m_totals.rightDriveInches);
+  frame.leftDrive = measure(m_leftDriveCheck, left, dtSeconds);
+  frame.rightDrive = measure(m_rightDriveCheck, right, dtSeconds);
 }
 
 void OdometryTask::readImu(SensorFrame& frame) {
@@ -151,7 +163,8 @@ void OdometryTask::readImu(SensorFrame& frame) {
   if (imu == nullptr || imu->sensor == nullptr) {
     return;
   }
-  const std::optional<double> rotation = imu->sensor->readRotationDegrees();
+  const std::optional<double> rotation =
+      remember(imu->sensor->readRotationDegrees(), m_totals.imuRotationDegrees);
   frame.imuValid = rotation.has_value();
   frame.imuRotationDegrees = rotation.value_or(0.0);
   frame.imuGyroRateDegreesPerSecond = imu->sensor->readGyroRateDegreesPerSecond().value_or(0.0);
@@ -228,6 +241,7 @@ void OdometryTask::publish(const RobotState& state, const SensorFrame& frame) {
     shared->driveMotorMissing = (left != nullptr && left->answeringCount() < left->size()) ||
                                 (right != nullptr && right->answeringCount() < right->size());
     shared->distances = frame.distances;
+    shared->totals = m_totals;
     shared->loopOverruns = m_loopOverruns;
   }
   if ((m_config.limits.telemetryChannels & TELEMETRY_POSE) != 0 &&

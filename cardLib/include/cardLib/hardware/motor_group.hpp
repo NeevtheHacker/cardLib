@@ -46,6 +46,7 @@ class MotorGroup : public Encoder {
 
   std::optional<double> currentAmps(std::size_t index) const;
   std::optional<double> temperatureCelsius(std::size_t index) const;
+  std::optional<double> velocityRpm(std::size_t index) const;  // output shaft, signed
 
  private:
   std::int8_t signedPort(std::size_t index) const;
