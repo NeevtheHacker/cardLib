@@ -17,3 +17,6 @@ temp.errors
 .d/
 
 build/
+# Packaged library template (pros make template)
+cardLib@*.zip
+template/
