@@ -32,6 +32,13 @@ Chassis::Chassis(const ChassisConfig& config, PoseEstimator* estimator)
 
 const StartupReport& Chassis::initialize() {
   m_report = {};
+  if (!m_tasksStarted) {
+    // Rebuilt here, not only in the constructor: the chassis may be a global built before
+    // the sensor configs it points to.
+    const Pose pose = m_defaultOdometry.state().pose;
+    m_defaultOdometry = ArcOdometry(makeArcOdometryConfig(m_config));
+    m_defaultOdometry.reset(pose);
+  }
   PortRegistry registry;
   registerDevices(registry);
   m_report.portIssueCount =

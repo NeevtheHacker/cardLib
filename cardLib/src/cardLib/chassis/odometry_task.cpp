@@ -22,11 +22,12 @@ OdometryTask::OdometryTask(const ChassisConfig& config, PoseEstimator& estimator
     : m_config(config),
       m_estimator(estimator),
       m_telemetry(telemetry),
-      m_verticalChecks{PlausibilityCheck(maxDriveSpeedInchesPerSecond(config)),
-                       PlausibilityCheck(maxDriveSpeedInchesPerSecond(config))},
-      m_horizontalCheck(maxDriveSpeedInchesPerSecond(config)),
-      m_leftDriveCheck(maxDriveSpeedInchesPerSecond(config)),
-      m_rightDriveCheck(maxDriveSpeedInchesPerSecond(config)) {
+      // The real speed limit is set in start(), once the motor groups exist. The chassis may
+      // be a global built before them.
+      m_verticalChecks{PlausibilityCheck(0.0), PlausibilityCheck(0.0)},
+      m_horizontalCheck(0.0),
+      m_leftDriveCheck(0.0),
+      m_rightDriveCheck(0.0) {
   std::size_t count = 0;
   for (const TrackingWheelConfig* wheel :
        {config.sensors.verticalWheel1, config.sensors.verticalWheel2}) {
@@ -40,6 +41,11 @@ void OdometryTask::start() {
   if (m_task != nullptr) {
     return;
   }
+  const double maxSpeed = maxDriveSpeedInchesPerSecond(m_config);
+  m_verticalChecks = {PlausibilityCheck(maxSpeed), PlausibilityCheck(maxSpeed)};
+  m_horizontalCheck = PlausibilityCheck(maxSpeed);
+  m_leftDriveCheck = PlausibilityCheck(maxSpeed);
+  m_rightDriveCheck = PlausibilityCheck(maxSpeed);
   m_task = pros::c::task_create(&OdometryTask::taskEntry, this, PRIORITY,
                                 TASK_STACK_DEPTH_DEFAULT, "cardLib odometry");
 }

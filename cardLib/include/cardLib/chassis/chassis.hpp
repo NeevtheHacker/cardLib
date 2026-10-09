@@ -46,6 +46,7 @@ struct StartupReport {
 class Chassis {
  public:
   // Without an estimator, the chassis uses its own arc odometry built from the config.
+  // Safe as a global: the constructor only stores the config and touches no device.
   explicit Chassis(const ChassisConfig& config, PoseEstimator* estimator = nullptr);
   Chassis(const Chassis&) = delete;
   Chassis& operator=(const Chassis&) = delete;
