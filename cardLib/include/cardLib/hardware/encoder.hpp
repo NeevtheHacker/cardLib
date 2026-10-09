@@ -5,6 +5,9 @@
 
 #include <optional>
 
+#include "cardLib/hardware/hardware_config.hpp"
+#include "cardLib/hardware/port_registry.hpp"
+
 namespace cardLib {
 
 class Encoder {
@@ -19,6 +22,10 @@ class Encoder {
 
   // Zeroes the angle. False if the device didn't answer.
   virtual bool reset() = 0;
+
+  // Adds this device's ports to the startup check.
+  virtual void registerPorts(PortRegistry& registry, const char* role,
+                             Requirement requirement) const = 0;
 };
 
 }  // namespace cardLib

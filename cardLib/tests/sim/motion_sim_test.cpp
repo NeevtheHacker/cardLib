@@ -27,7 +27,9 @@ constexpr PidGains HEADING_GAINS{.kP = 2.0};
 constexpr PidGains TURN_GAINS{.kP = 2.0, .kD = 0.2};
 constexpr std::uint32_t SETTLE_IDLE_MS = 500;
 
-SimRobot makeRobot(const Pose& start = {}) { return SimRobot({}, LINEAR_SLEW, ANGULAR_SLEW, start); }
+SimRobot makeRobot(const Pose& start = {}) {
+  return SimRobot({}, LINEAR_SLEW, ANGULAR_SLEW, start);
+}
 
 double distanceTo(const Pose& pose, double x, double y) {
   return std::hypot(pose.xInches - x, pose.yInches - y);

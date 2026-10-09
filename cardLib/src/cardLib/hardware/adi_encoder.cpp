@@ -33,4 +33,10 @@ bool AdiEncoder::reset() {
   return m_initialized && pros::c::adi_encoder_reset(m_handle) != PROS_ERR;
 }
 
+void AdiEncoder::registerPorts(PortRegistry& registry, const char* role,
+                               Requirement requirement) const {
+  registry.add(m_topPort, DeviceKind::AdiEncoder, role, requirement);
+  registry.add(m_bottomPort, DeviceKind::AdiEncoderBottom, role, requirement);
+}
+
 }  // namespace cardLib

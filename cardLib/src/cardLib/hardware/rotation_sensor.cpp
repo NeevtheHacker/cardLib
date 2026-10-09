@@ -30,4 +30,9 @@ std::optional<double> RotationSensor::readDegrees() {
 
 bool RotationSensor::reset() { return pros::c::rotation_reset_position(m_port) != PROS_ERR; }
 
+void RotationSensor::registerPorts(PortRegistry& registry, const char* role,
+                                   Requirement requirement) const {
+  registry.add(m_port, DeviceKind::Rotation, role, requirement);
+}
+
 }  // namespace cardLib

@@ -104,3 +104,13 @@ TEST_CASE("the move settles on its own small window") {
   REQUIRE(exit.has_value());
   CHECK(exit->result == MotionResult::Settled);
 }
+
+TEST_CASE("the step reports target and measured progress for the log") {
+  Move move(SETTINGS);
+  DrivePipeline pipeline(NO_SLEW, NO_SLEW);
+  move.configure(24.0, {.forwards = false});
+  move.start(stateAt(0.0, 0.0, 0.0));
+  const MotionStep step = move.step(stateAt(0.0, -5.0, 0.0), {}, pipeline);
+  CHECK(step.target == doctest::Approx(-24.0));
+  CHECK(step.measured == doctest::Approx(-5.0));
+}

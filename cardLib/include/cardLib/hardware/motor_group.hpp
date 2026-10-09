@@ -29,6 +29,8 @@ class MotorGroup : public Encoder {
   // disconnects, reconnects or is removed never makes the angle jump (SPEC section 17).
   std::optional<double> readDegrees() override;
   bool reset() override;
+  void registerPorts(PortRegistry& registry, const char* role,
+                     Requirement requirement) const override;
 
   // -12000 to 12000 mV on every motor. The only way cardLib drives a motor.
   void moveMillivolts(std::int32_t millivolts);

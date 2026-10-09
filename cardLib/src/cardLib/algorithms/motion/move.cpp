@@ -59,6 +59,8 @@ MotionStep Move::step(const RobotState& state, const MotionTick& tick, DrivePipe
   result.exit = m_exits.check(makeExitInputs(linearError, state.linearVelocityInchesPerSecond,
                                              state, tick, m_options.allowDegraded));
   result.progress = std::abs(progress);
+  result.target = m_targetInches;
+  result.measured = progress;
   return result;
 }
 

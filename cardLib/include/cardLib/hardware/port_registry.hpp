@@ -66,7 +66,16 @@ constexpr bool adiPortsValid(std::span<const std::uint8_t> ports) {
 
 // Smart Port kinds are compared with what PROS sees plugged in. 3-wire ports can't identify
 // their device, so for those only the configured mode is checked.
-enum class DeviceKind { Motor, Imu, Rotation, Distance, AdiEncoder, AdiDigitalOut };
+// AdiEncoderBottom is the second port of a 3-wire encoder: only checked for duplicates.
+enum class DeviceKind {
+  Motor,
+  Imu,
+  Rotation,
+  Distance,
+  AdiEncoder,
+  AdiEncoderBottom,
+  AdiDigitalOut,
+};
 
 enum class PortProblem { InvalidPort, DuplicatePort, Missing, WrongDevice, WrongAdiMode };
 
@@ -104,7 +113,8 @@ class PortRegistry {
 };
 
 constexpr bool isAdiKind(DeviceKind kind) {
-  return kind == DeviceKind::AdiEncoder || kind == DeviceKind::AdiDigitalOut;
+  return kind == DeviceKind::AdiEncoder || kind == DeviceKind::AdiEncoderBottom ||
+         kind == DeviceKind::AdiDigitalOut;
 }
 
 }  // namespace cardLib

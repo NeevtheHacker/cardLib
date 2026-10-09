@@ -103,6 +103,13 @@ bool MotorGroup::reset() {
   return true;
 }
 
+void MotorGroup::registerPorts(PortRegistry& registry, const char* role,
+                               Requirement requirement) const {
+  for (std::size_t i = 0; i < m_count; ++i) {
+    registry.add(m_motors[i].port, DeviceKind::Motor, role, requirement);
+  }
+}
+
 void MotorGroup::moveMillivolts(std::int32_t millivolts) {
   for (std::size_t i = 0; i < m_count; ++i) {
     pros::c::motor_move_voltage(signedPort(i), millivolts);

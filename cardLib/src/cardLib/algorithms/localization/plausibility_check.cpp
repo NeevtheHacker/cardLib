@@ -14,6 +14,7 @@ constexpr std::uint32_t REJECTIONS_TO_FAULT = 3;
 }
 
 double PlausibilityCheck::update(std::optional<double> totalInches, double dtSeconds) {
+  m_lastChangeMeasured = false;
   if (!totalInches.has_value()) {
     return reject();
   }
@@ -32,6 +33,7 @@ double PlausibilityCheck::update(std::optional<double> totalInches, double dtSec
   m_lastInches = *totalInches;
   m_flagged = false;
   m_rejectionsInARow = 0;
+  m_lastChangeMeasured = true;
   return change;
 }
 

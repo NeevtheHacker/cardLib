@@ -74,6 +74,8 @@ MotionStep MoveToPoint::step(const RobotState& state, const MotionTick& tick,
   result.exit = m_exits.check(makeExitInputs(distance, state.linearVelocityInchesPerSecond, state,
                                              tick, m_options.allowDegraded));
   result.progress = m_travelledInches;
+  result.target = 0.0;
+  result.measured = distance;
   return result;
 }
 

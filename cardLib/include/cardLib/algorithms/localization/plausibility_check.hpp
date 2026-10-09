@@ -22,6 +22,10 @@ class PlausibilityCheck {
   // Fresh baseline and a cleared fault, as setPose does.
   void rebaseline(std::optional<double> totalInches);
 
+  // True only when this loop's change was actually measured: false on a rejected or failed
+  // read and on a re-baseline, when the change returned is 0 but the wheel may have moved.
+  bool lastChangeMeasured() const { return m_lastChangeMeasured; }
+
   // Flagged: this loop's reading was rejected. Faulted: three rejections in a row; stays set
   // until rebaseline().
   bool flagged() const { return m_flagged; }
@@ -35,6 +39,7 @@ class PlausibilityCheck {
   double m_lastInches = 0.0;
   bool m_hasBaseline = false;
   bool m_flagged = false;
+  bool m_lastChangeMeasured = false;
   bool m_faulted = false;
   std::uint32_t m_rejectionsInARow = 0;
 };

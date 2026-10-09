@@ -43,6 +43,8 @@ MotionStep PivotTurn::step(const RobotState& state, const MotionTick& tick,
   result.exit = m_exits.check(makeExitInputs(error, state.angularVelocityDegreesPerSecond, state,
                                              tick, m_options.allowDegraded));
   result.progress = std::abs(state.pose.headingDegrees - m_startHeadingDegrees);
+  result.target = m_targetHeadingDegrees;
+  result.measured = state.pose.headingDegrees;
   return result;
 }
 

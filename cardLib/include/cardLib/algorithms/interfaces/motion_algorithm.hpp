@@ -30,6 +30,8 @@ struct MotionStep {
   DriveCommand command = {};
   std::optional<ExitDecision> exit = std::nullopt;
   double progress = 0.0;  // inches for moves, degrees for turns; what waitUntil() counts
+  double target = 0.0;    // what the motion drives toward, for the log and tuner page
+  double measured = 0.0;  // where it is now, in the same units
 };
 
 class MotionAlgorithm {

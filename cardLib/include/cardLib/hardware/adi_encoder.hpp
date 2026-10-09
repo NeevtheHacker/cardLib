@@ -20,6 +20,8 @@ class AdiEncoder : public Encoder {
   bool initialize() override;
   std::optional<double> readDegrees() override;
   bool reset() override;
+  void registerPorts(PortRegistry& registry, const char* role,
+                     Requirement requirement) const override;
 
   std::uint8_t topPort() const { return m_topPort; }
   std::uint8_t bottomPort() const { return m_bottomPort; }

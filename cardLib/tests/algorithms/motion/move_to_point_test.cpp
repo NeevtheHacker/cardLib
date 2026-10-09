@@ -95,3 +95,13 @@ TEST_CASE("progress counts inches actually travelled") {
   motion.step(stateAt(3.0, 4.0, 0.0), {}, pipeline);
   CHECK(motion.step(stateAt(3.0, 10.0, 0.0), {}, pipeline).progress == doctest::Approx(11.0));
 }
+
+TEST_CASE("the step reports the distance left as measured, against a target of 0") {
+  MoveToPoint motion(SETTINGS);
+  DrivePipeline pipeline(NO_SLEW, NO_SLEW);
+  motion.configure({3.0, 4.0}, {});
+  motion.start(stateAt(0.0, 0.0, 0.0));
+  const MotionStep step = motion.step(stateAt(0.0, 0.0, 0.0), {}, pipeline);
+  CHECK(step.target == doctest::Approx(0.0));
+  CHECK(step.measured == doctest::Approx(5.0));
+}

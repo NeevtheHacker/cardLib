@@ -103,3 +103,13 @@ TEST_CASE("earlyExit ends the turn without braking") {
   CHECK(step.exit->result == MotionResult::Settled);
   CHECK_FALSE(step.exit->brake);
 }
+
+TEST_CASE("the step reports target and measured heading for the log") {
+  Turn turn(SETTINGS);
+  DrivePipeline pipeline(NO_SLEW, NO_SLEW);
+  turn.configureHeading(45.0, {});
+  turn.start(stateAt(0.0, 0.0, 0.0));
+  const MotionStep step = turn.step(stateAt(0.0, 0.0, 12.0), {}, pipeline);
+  CHECK(step.target == doctest::Approx(45.0));
+  CHECK(step.measured == doctest::Approx(12.0));
+}

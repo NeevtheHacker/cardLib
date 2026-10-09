@@ -137,8 +137,10 @@ TEST_CASE("the small-angle branch matches the full formula on either side of 1e-
     odometry.update(straightFrame(0.0, 0.0));
     const RobotState state = odometry.update(straightFrame(radiansToDegrees(turnRadians), 10.0));
     const double chord = 10.0 * (1.0 - turnRadians * turnRadians / 24.0);
-    CHECK(state.pose.yInches == doctest::Approx(chord * std::cos(turnRadians / 2.0)).epsilon(1e-12));
-    CHECK(state.pose.xInches == doctest::Approx(chord * std::sin(turnRadians / 2.0)).epsilon(1e-12));
+    const double expectedY = chord * std::cos(turnRadians / 2.0);
+    const double expectedX = chord * std::sin(turnRadians / 2.0);
+    CHECK(state.pose.yInches == doctest::Approx(expectedY).epsilon(1e-12));
+    CHECK(state.pose.xInches == doctest::Approx(expectedX).epsilon(1e-12));
   }
 }
 

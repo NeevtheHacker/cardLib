@@ -23,6 +23,7 @@ pros::c::v5_device_e_t expectedSmartDevice(DeviceKind kind) {
     case DeviceKind::Distance:
       return pros::c::E_DEVICE_DISTANCE;
     case DeviceKind::AdiEncoder:
+    case DeviceKind::AdiEncoderBottom:
     case DeviceKind::AdiDigitalOut:
       break;
   }
@@ -39,6 +40,9 @@ std::optional<PortProblem> checkPluggedDevice(std::uint8_t port, DeviceKind kind
     const std::uint8_t adiPort = normalizeAdiPort(port);
     if (adiPort == 0) {
       return PortProblem::InvalidPort;
+    }
+    if (kind == DeviceKind::AdiEncoderBottom) {
+      return std::nullopt;
     }
     if (pros::c::adi_port_get_config(adiPort) != expectedAdiMode(kind)) {
       return PortProblem::WrongAdiMode;

@@ -18,6 +18,8 @@ class RotationSensor : public Encoder {
   bool initialize() override;
   std::optional<double> readDegrees() override;  // centidegrees / 100
   bool reset() override;
+  void registerPorts(PortRegistry& registry, const char* role,
+                     Requirement requirement) const override;
 
   std::uint8_t port() const { return m_port; }
   const SensorHealth& health() const { return m_health; }

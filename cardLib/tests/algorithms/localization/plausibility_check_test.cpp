@@ -101,3 +101,17 @@ TEST_CASE("a longer dt allows a proportionally larger change") {
   check.update(0.0, DT);
   CHECK(check.update(1.7, 0.02) == doctest::Approx(1.7));
 }
+
+TEST_CASE("lastChangeMeasured is true only for an accepted change") {
+  PlausibilityCheck check(MAX_SPEED);
+  check.update(0.0, DT);
+  CHECK_FALSE(check.lastChangeMeasured());
+  check.update(0.5, DT);
+  CHECK(check.lastChangeMeasured());
+  check.update(9.0, DT);
+  CHECK_FALSE(check.lastChangeMeasured());
+  check.update(9.1, DT);
+  CHECK_FALSE(check.lastChangeMeasured());
+  check.update(std::nullopt, DT);
+  CHECK_FALSE(check.lastChangeMeasured());
+}
