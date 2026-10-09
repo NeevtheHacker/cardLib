@@ -3,6 +3,7 @@
 // Owns: the list of public headers. Grows as each layer is built.
 #pragma once
 
+#include "cardLib/algorithms/calibration/calibration_math.hpp"
 #include "cardLib/algorithms/control/drive_command.hpp"
 #include "cardLib/algorithms/control/drive_curve.hpp"
 #include "cardLib/algorithms/control/drive_mixer.hpp"
