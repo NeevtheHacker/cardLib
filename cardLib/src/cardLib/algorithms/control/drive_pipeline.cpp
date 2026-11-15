@@ -73,6 +73,28 @@ void summarizeSides(DriveCommand& command, const DriveKinematics& kinematics) {
   command.rightMode = right.mode;
 }
 
+double drivenMillivoltMagnitude(const DriveCommand& command) {
+  double sum = 0.0;
+  std::size_t driven = 0;
+  if (command.wheelCount == 0) {
+    if (command.leftMode == SideMode::Driven) {
+      sum += std::abs(command.leftMillivolts);
+      ++driven;
+    }
+    if (command.rightMode == SideMode::Driven) {
+      sum += std::abs(command.rightMillivolts);
+      ++driven;
+    }
+  }
+  for (std::size_t i = 0; i < command.wheelCount; ++i) {
+    if (command.wheels[i].mode == SideMode::Driven) {
+      sum += std::abs(command.wheels[i].millivolts);
+      ++driven;
+    }
+  }
+  return driven == 0 ? 0.0 : sum / static_cast<double>(driven);
+}
+
 DrivePipeline::DrivePipeline(const SlewRates& linearRates, const SlewRates& angularRates)
     : DrivePipeline(UNIT_TANK_KINEMATICS, linearRates, linearRates, angularRates) {}
 

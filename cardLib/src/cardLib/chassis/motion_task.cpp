@@ -4,7 +4,6 @@
 // Owns: nothing beyond MotionTask's own state.
 #include "cardLib/chassis/motion_task.hpp"
 
-#include <cmath>
 #include <cstdlib>
 #include <span>
 
@@ -71,17 +70,6 @@ bool isStill(const DriveCommand& command) {
 }
 
 // The mean |millivolts| the command asks of the drive, for the current stall check.
-double averageMillivoltMagnitude(const DriveCommand& command) {
-  if (command.wheelCount == 0) {
-    return (std::abs(command.leftMillivolts) + std::abs(command.rightMillivolts)) / 2.0;
-  }
-  double sum = 0.0;
-  for (std::size_t i = 0; i < command.wheelCount; ++i) {
-    sum += std::abs(command.wheels[i].millivolts);
-  }
-  return sum / static_cast<double>(command.wheelCount);
-}
-
 // What the black box records as a motion's target.
 Pose recordedTarget(const MotionCommand& command, const Pose& startPose) {
   if (command.kind == MotionKind::Move) {
@@ -505,7 +493,8 @@ void MotionTask::applyGains(const Gains& gains) {
 }
 
 // SPEC section 9 optional current check: half the drive motors over the threshold while the
-// commanded output is above a minimum. Reads current per motor, never the vector version.
+// commanded output (averaged over driven wheels; held ones are left out) is above a minimum.
+// Reads current per motor, never the vector version.
 bool MotionTask::currentStallConfirmed(const DriveCommand& command) const {
   const Limits& limits = m_config.limits;
   if (!limits.useCurrentForStall) {
@@ -522,7 +511,7 @@ bool MotionTask::currentStallConfirmed(const DriveCommand& command) const {
     }
   }
   const double commandedSpeed =
-      averageMillivoltMagnitude(command) / MAX_MILLIVOLTS * MAX_SPEED;
+      drivenMillivoltMagnitude(command) / MAX_MILLIVOLTS * MAX_SPEED;
   return currentConfirmsStall(std::span<const double>(currents.data(), count),
                               limits.stallCurrentAmps, commandedSpeed,
                               limits.stallMinCommandSpeed);

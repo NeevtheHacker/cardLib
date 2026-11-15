@@ -155,3 +155,34 @@ TEST_CASE("summarizeSides: one wheel alone shows on its own side only") {
   CHECK(command.leftMillivolts == 0);
   CHECK(command.rightMillivolts == 2000);
 }
+
+TEST_CASE("drivenMillivoltMagnitude averages only the driven wheels") {
+  DriveCommand command;
+  command.wheelCount = 4;
+  const std::int32_t raw[4] = {6000, -6000, 0, 6000};
+  for (std::size_t i = 0; i < 4; ++i) {
+    command.wheels[i].millivolts = raw[i];
+  }
+  command.wheels[2].mode = SideMode::Held;
+  CHECK(drivenMillivoltMagnitude(command) == doctest::Approx(6000.0));
+  command.wheels[2].mode = SideMode::Driven;
+  CHECK(drivenMillivoltMagnitude(command) == doctest::Approx(4500.0));
+}
+
+TEST_CASE("drivenMillivoltMagnitude on a two-side command skips a held side") {
+  DriveCommand command{.leftMillivolts = 8000, .rightMillivolts = 0,
+                       .rightMode = SideMode::Held};
+  CHECK(drivenMillivoltMagnitude(command) == doctest::Approx(8000.0));
+  command.rightMode = SideMode::Driven;
+  command.rightMillivolts = -4000;
+  CHECK(drivenMillivoltMagnitude(command) == doctest::Approx(6000.0));
+}
+
+TEST_CASE("drivenMillivoltMagnitude is 0 when nothing is driven") {
+  DriveCommand command{.leftMode = SideMode::Held, .rightMode = SideMode::Held};
+  CHECK(drivenMillivoltMagnitude(command) == 0.0);
+  command.wheelCount = 2;
+  command.wheels[0].mode = SideMode::Held;
+  command.wheels[1].mode = SideMode::Held;
+  CHECK(drivenMillivoltMagnitude(command) == 0.0);
+}

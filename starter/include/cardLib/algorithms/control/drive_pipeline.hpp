@@ -38,6 +38,8 @@ DriveCommand toDriveCommand(const WheelSpeeds& wheels, const DriveKinematics& ki
 // 0. For commands built outside the pipeline, e.g. raw per-wheel test voltages.
 void summarizeSides(DriveCommand& command, const DriveKinematics& kinematics);
 
+double drivenMillivoltMagnitude(const DriveCommand& command);
+
 class DrivePipeline {
  public:
   // A unit tank (UNIT_TANK_KINEMATICS), with the strafe channel slewed like linear. The real

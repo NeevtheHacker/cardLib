@@ -156,7 +156,7 @@ These defaults are starting points only. Tune them for your robot.
 | `handoffSpeedInchesPerSecond` | `3.0` | ...and below this speed |
 | `useCurrentForStall` | `false` | Also detect stalls from motor current |
 | `stallCurrentAmps` | `2.0` | Current that counts as stalled |
-| `stallMinCommandSpeed` | `20.0` | Only when the command is at least this |
+| `stallMinCommandSpeed` | `20.0` | Only when the command, averaged over the driven wheels, is at least this |
 | `throttleCurve`, `turnCurve` | deadzone 3, linear | Driver curves |
 | `velocitySmoothing` | `0.5` | Velocity filter |
 | `imuDriftLimitDegrees` | `0.05` | Max drift over the startup still check |
