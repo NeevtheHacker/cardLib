@@ -1,0 +1,12 @@
+:root {
+  --md-primary-fg-color: #9e1b2a;
+  --md-primary-fg-color--light: #c23345;
+  --md-primary-fg-color--dark: #7a1420;
+  --md-accent-fg-color: #c23345;
+}
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #8f1d2a;
+  --md-accent-fg-color: #f0646f;
+}
+.md-typeset table:not([class]) th { white-space: nowrap; }
+.md-typeset .status { font-size: .75rem; font-weight: 600; padding: .1rem .5rem; border-radius: 1rem; }
