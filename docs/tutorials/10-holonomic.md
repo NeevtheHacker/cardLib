@@ -126,7 +126,7 @@ chassis.holonomic(forward, strafe, turn, {.fieldCentric = true});  // this call 
 chassis.tank(left, right);  chassis.arcade(forward, turn);         // still work on any drive
 ```
 
-**Robot-centric** (the default on every drive): stick forward moves the robot the way it faces. **Field-centric**: stick forward always moves the robot away from the driver, whichever way it faces. Field-centric falls back to robot-centric by itself if the IMU faults.
+**Robot-centric** (the default on every drive): stick forward moves the robot the way it faces. **Field-centric**: stick forward always moves the robot away from the driver, whichever way it faces. Field-centric falls back to robot-centric by itself if the IMU faults. In field-centric, the throttle curve shapes how far the stick is pushed in any direction, so the robot responds the same whichever way it faces ([Curves](8-driver-control.md#curves)).
 
 A button for each is a common setup. Example, in your driver loop (the starter is a tank, so it doesn't include these):
 

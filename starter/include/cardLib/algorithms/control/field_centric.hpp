@@ -4,6 +4,8 @@
 // Owns: fieldCentricSticks(). Uses fieldToLocal, so the sign lives in one place.
 #pragma once
 
+#include "cardLib/algorithms/control/drive_curve.hpp"
+
 namespace cardLib {
 
 // Sticks on the -127 to 127 scale: forward and strafe (right).
@@ -16,5 +18,8 @@ struct StickVector {
 // field-centric forward: forward = s_x sin(theta) + s_y cos(theta),
 // right = s_x cos(theta) - s_y sin(theta).
 StickVector fieldCentricSticks(double forwardStick, double strafeStick, double headingDegrees);
+
+StickVector curvedFieldCentricSticks(double forwardStick, double strafeStick,
+                                     double headingDegrees, const DriveCurve& curve);
 
 }  // namespace cardLib

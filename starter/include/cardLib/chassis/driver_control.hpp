@@ -28,9 +28,13 @@ class DriverControl {
   // Sticks on the -127 to 127 scale.
   DriverCommand tank(double leftStick, double rightStick) const;
   DriverCommand arcade(double forwardStick, double turnStick) const;
-  // Forward and strafe use the throttle curve, turn the turn curve. Already field-rotated if
-  // field-centric; on a tank the strafe stick does nothing.
+  // Robot-centric: forward and strafe each use the throttle curve, turn the turn curve. On a
+  // tank the strafe stick does nothing.
   DriverCommand holonomic(double forwardStick, double strafeStick, double turnStick) const;
+  // Field-centric: the throttle curve shapes the stick's length, then the stick is turned by
+  // headingDegrees, so the feel doesn't change with the way the robot faces.
+  DriverCommand holonomicFieldCentric(double forwardStick, double strafeStick, double turnStick,
+                                      double headingDegrees) const;
 
   void setCurves(const DriveCurve& throttleCurve, const DriveCurve& turnCurve);
 

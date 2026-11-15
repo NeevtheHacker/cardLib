@@ -1,9 +1,10 @@
 // driver_control.cpp
-// Why: implements tank and arcade from SPEC section 10.
+// Why: implements tank, arcade and holonomic driving from SPEC sections 10 and 20.11.
 // Owns: nothing beyond DriverControl's curves.
 #include "cardLib/chassis/driver_control.hpp"
 
 #include "cardLib/algorithms/control/drive_mixer.hpp"
+#include "cardLib/algorithms/control/field_centric.hpp"
 
 namespace cardLib {
 
@@ -28,6 +29,16 @@ DriverCommand DriverControl::holonomic(double forwardStick, double strafeStick,
   return {.mixSpeeds = true,
           .speeds = {.forward = applyDriveCurve(forwardStick, m_throttleCurve),
                      .strafe = applyDriveCurve(strafeStick, m_throttleCurve),
+                     .turn = applyDriveCurve(turnStick, m_turnCurve)}};
+}
+
+DriverCommand DriverControl::holonomicFieldCentric(double forwardStick, double strafeStick,
+                                                   double turnStick, double headingDegrees) const {
+  const StickVector robot =
+      curvedFieldCentricSticks(forwardStick, strafeStick, headingDegrees, m_throttleCurve);
+  return {.mixSpeeds = true,
+          .speeds = {.forward = robot.forward,
+                     .strafe = robot.strafe,
                      .turn = applyDriveCurve(turnStick, m_turnCurve)}};
 }
 

@@ -7,7 +7,6 @@
 #include <cmath>
 
 #include "cardLib/algorithms/control/drive_pipeline.hpp"
-#include "cardLib/algorithms/control/field_centric.hpp"
 #include "cardLib/hardware/distance_sensor.hpp"
 #include "cardLib/hardware/gps_sensor.hpp"
 #include "cardLib/hardware/imu.hpp"
@@ -398,9 +397,8 @@ void Chassis::holonomic(double forwardStick, double strafeStick, double turnStic
     const OdometrySnapshot odometry = m_odometry.snapshot();
     if (fieldHeadingAvailable(odometry)) {
       const double heading = odometry.state.pose.headingDegrees - m_fieldForwardDegrees.load();
-      const StickVector robot = fieldCentricSticks(forwardStick, strafeStick, heading);
-      forwardStick = robot.forward;
-      strafeStick = robot.strafe;
+      m_motion.drive(m_driver.holonomicFieldCentric(forwardStick, strafeStick, turnStick, heading));
+      return;
     }
   }
   m_motion.drive(m_driver.holonomic(forwardStick, strafeStick, turnStick));

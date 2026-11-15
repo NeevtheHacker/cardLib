@@ -31,7 +31,8 @@ This file mirrors `docs/project/changelog.md`.
   `pivotTurn()` about any robot-local point. `MotionResult::Unsupported` on a drive that can't
   make the motion.
 - `holonomic()` driver control, robot-centric by default; `setDriveMode()`,
-  `resetFieldHeading()` and a per-call `{.fieldCentric = true}`.
+  `resetFieldHeading()` and a per-call `{.fieldCentric = true}`. Field-centric curves the stick's
+  length before turning it, so it feels the same at any heading.
 - `RobotState` gains `sidewaysVelocityInchesPerSecond`; drive-encoder odometry for holonomic
   drives through least-squares forward kinematics.
 - `RobotState::driveSlipSuspect`: on a drive with more wheels than it needs, a warning when the

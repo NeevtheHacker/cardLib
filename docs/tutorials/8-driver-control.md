@@ -28,6 +28,8 @@ config.limits.turnCurve     = {.deadzone = 3.0, .curveGain = 5.0};
 
 `curveGain` 0 is linear; bigger values are gentler at low stick. Full stick is always full power.
 
+In `holonomic()`, forward and strafe both use the throttle curve. Robot-centric curves each stick axis on its own. Field-centric curves the length of the stick's push (a full push in any direction is full power), then turns it by the heading, so the feel is the same whichever way the robot faces.
+
 In arcade, if forward + turn would go over 127, forward is reduced so the turn is never lost.
 
 ## Brake modes
