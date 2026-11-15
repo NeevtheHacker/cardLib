@@ -1,7 +1,8 @@
 # Changelog
 
 cardLib uses `MAJOR.MINOR.PATCH`. A change that breaks your code bumps MAJOR, a new feature bumps
-MINOR, a fix bumps PATCH. The Makefile `VERSION`, the release tag and this file always match.
+MINOR, a fix bumps PATCH. Before 1.0, a breaking change bumps MINOR instead (so 0.2.0 follows
+0.1.0). The Makefile `VERSION`, the release tag and this file always match.
 This file mirrors `docs/project/changelog.md`.
 
 ## Unreleased (planned as 0.2.0)

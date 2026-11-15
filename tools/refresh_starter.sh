@@ -15,6 +15,10 @@ fi
 echo "== packaging cardLib@$VERSION"
 cd "$ROOT/cardLib"
 pros make template
+# Drop any cached cardLib@VERSION first: with an old copy still in the PROS cache, the fetch
+# can leave the stale one in place and apply it.
+pros c purge-template "cardLib@$VERSION" --force ||
+  echo "refresh_starter: no cached cardLib@$VERSION to purge"
 pros c fetch "cardLib@$VERSION.zip"
 
 echo "== applying cardLib@$VERSION to starter/"
