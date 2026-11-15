@@ -13,3 +13,9 @@ bin/
 # Packaged zips (pros make template, starter zips). Release copies go in release/ on purpose.
 *.zip
 !release/*.zip
+
+# Editor settings: each person's VS Code setup is their own.
+.vscode/
+
+# Local design notes and the spec, used while developing. Not part of the published library.
+claudeDocs/

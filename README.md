@@ -91,8 +91,8 @@ published to GitHub Pages. Start with [Installation](docs/getting-started/instal
 | `cardLib/` | The library, a PROS project. Run every `pros` command from inside it. |
 | `cardLib/tests/` | Laptop tests (doctest): `cmake -S tests -B build/tests && cmake --build build/tests && ctest --test-dir build/tests` |
 | `starter/` | The starter project, with cardLib applied. Refresh it with `tools/refresh_starter.sh`. |
-| `docs/` | The documentation site. |
-| `claudeDocs/` | The design spec. |
+| `docs/` | The documentation site (`mkdocs.yml` at the root). |
+| `tools/` | Maintainer scripts, such as `refresh_starter.sh`. |
 
 ## License and credits
 

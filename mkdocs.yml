@@ -1,0 +1,81 @@
+# mkdocs.yml
+# Why: builds the documentation site in docs/ with MkDocs Material (python -m mkdocs build --strict).
+# Owns: the site settings, theme, Markdown extensions and the page navigation.
+
+site_name: cardLib
+site_description: "A PROS 4 library for VEX V5 robots: odometry, PID motions, driver control and diagnostics."
+repo_name: cardLib
+# repo_url: https://github.com/<owner>/cardLib  (add once the GitHub repository exists)
+copyright: cardLib is released under the MIT license.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Your first project: getting-started/first-project.md
+  - Tutorials:
+      - 1. Conventions: tutorials/1-conventions.md
+      - 2. Drivetrain setup: tutorials/2-drivetrain.md
+      - 3. Sensors: tutorials/3-sensors.md
+      - 4. Calibration: tutorials/4-calibration.md
+      - 5. Tuning PID: tutorials/5-pid-tuning.md
+      - 6. Motions: tutorials/6-motions.md
+      - 7. Chaining motions: tutorials/7-chaining.md
+      - 8. Driver control: tutorials/8-driver-control.md
+      - 9. Autons and the screen: tutorials/9-autons-screen.md
+      - 10. Holonomic drives (0.2): tutorials/10-holonomic.md
+  - API reference:
+      - Chassis: reference/chassis.md
+      - Options and results: reference/options-results.md
+      - Configuration: reference/config.md
+      - Hardware: reference/hardware.md
+      - Systems: reference/systems.md
+  - Project:
+      - Changelog: project/changelog.md
+      - Credits: project/credits.md
+use_directory_urls: false

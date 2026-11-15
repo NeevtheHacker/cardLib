@@ -1,0 +1,5 @@
+# requirements-docs.txt
+# Why: pins the tools that build the documentation site, so local and CI builds match.
+# Owns: the MkDocs and Material versions (pip install -r requirements-docs.txt).
+mkdocs==1.6.1
+mkdocs-material==9.7.7
