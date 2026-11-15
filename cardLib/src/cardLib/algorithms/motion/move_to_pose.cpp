@@ -29,9 +29,7 @@ MotionOptions driveOptions(MotionOptions options) {
 }  // namespace
 
 MoveToPose::MoveToPose(const MoveToPoseSettings& settings)
-    : m_settings(settings),
-      m_drive(driveOnlySettings(settings.drive)),
-      m_turn(settings.turn) {}
+    : m_settings(settings), m_drive(driveOnlySettings(settings.drive)), m_turn(settings.turn) {}
 
 void MoveToPose::configure(const Pose& target, const MotionOptions& options) {
   m_target = target;

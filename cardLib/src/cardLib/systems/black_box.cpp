@@ -34,10 +34,10 @@ BlackBox::SaveResult BlackBox::saveToSd(const char* path) {
     const MotionRecord& r = records[i];
     std::fprintf(file, "%lu,%d,%.2f,%.2f,%.1f,%.2f,%.2f,%.1f,%.2f,%.2f,%.1f,%d,%lu\n",
                  static_cast<unsigned long>(r.startTimeMs), static_cast<int>(r.kind),
-                 r.target.xInches, r.target.yInches, r.target.headingDegrees,
-                 r.startPose.xInches, r.startPose.yInches, r.startPose.headingDegrees,
-                 r.endPose.xInches, r.endPose.yInches, r.endPose.headingDegrees,
-                 static_cast<int>(r.result), static_cast<unsigned long>(r.durationMs));
+                 r.target.xInches, r.target.yInches, r.target.headingDegrees, r.startPose.xInches,
+                 r.startPose.yInches, r.startPose.headingDegrees, r.endPose.xInches,
+                 r.endPose.yInches, r.endPose.headingDegrees, static_cast<int>(r.result),
+                 static_cast<unsigned long>(r.durationMs));
   }
   std::fclose(file);
   m_lastResult = SaveResult::Saved;

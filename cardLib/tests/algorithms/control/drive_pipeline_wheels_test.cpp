@@ -170,8 +170,7 @@ TEST_CASE("drivenMillivoltMagnitude averages only the driven wheels") {
 }
 
 TEST_CASE("drivenMillivoltMagnitude on a two-side command skips a held side") {
-  DriveCommand command{.leftMillivolts = 8000, .rightMillivolts = 0,
-                       .rightMode = SideMode::Held};
+  DriveCommand command{.leftMillivolts = 8000, .rightMillivolts = 0, .rightMode = SideMode::Held};
   CHECK(drivenMillivoltMagnitude(command) == doctest::Approx(8000.0));
   command.rightMode = SideMode::Driven;
   command.rightMillivolts = -4000;

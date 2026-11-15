@@ -130,8 +130,8 @@ ArcOdometryConfig makeArcOdometryConfig(const ChassisConfig& config) {
   }
   odometry.hasImu = sensors.imu != nullptr;
   odometry.imuScale = calibration.imuScale;
-  odometry.effectiveTrackWidthInches = calibration.effectiveTrackWidthInches.value_or(
-      driveTrackWidthInches(resolveDrive(config)));
+  odometry.effectiveTrackWidthInches =
+      calibration.effectiveTrackWidthInches.value_or(driveTrackWidthInches(resolveDrive(config)));
   odometry.velocitySmoothing = config.limits.velocitySmoothing;
   odometry.driveKinematics = driveGeometryKinematics(resolveDrive(config));
   return odometry;

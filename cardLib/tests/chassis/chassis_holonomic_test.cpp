@@ -24,7 +24,9 @@ struct WheelSigns {
   int backRight;
 };
 
-int sign(std::int32_t millivolts) { return millivolts > 0 ? 1 : (millivolts < 0 ? -1 : 0); }
+int sign(std::int32_t millivolts) {
+  return millivolts > 0 ? 1 : (millivolts < 0 ? -1 : 0);
+}
 
 WheelSigns wheelSigns() {
   return {sign(fake::motorMillivolts(Robot::FRONT_LEFT)),

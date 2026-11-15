@@ -13,11 +13,13 @@ void TerminalLog::start() {
   if (m_task != nullptr) {
     return;
   }
-  m_task = pros::c::task_create(&TerminalLog::taskEntry, this, PRIORITY,
-                                TASK_STACK_DEPTH_DEFAULT, "cardLib terminal");
+  m_task = pros::c::task_create(&TerminalLog::taskEntry, this, PRIORITY, TASK_STACK_DEPTH_DEFAULT,
+                                "cardLib terminal");
 }
 
-void TerminalLog::taskEntry(void* self) { static_cast<TerminalLog*>(self)->run(); }
+void TerminalLog::taskEntry(void* self) {
+  static_cast<TerminalLog*>(self)->run();
+}
 
 void TerminalLog::run() {
   std::uint32_t wakeTimeMs = pros::millis();

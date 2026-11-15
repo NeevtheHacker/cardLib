@@ -7,9 +7,8 @@ namespace cardLib {
 
 ExitInputs makeExitInputs(double error, double velocity, const RobotState& state,
                           const MotionTick& tick, bool allowDegraded) {
-  const bool odometryRefused =
-      state.health == OdometryHealth::Faulted ||
-      (state.health == OdometryHealth::Degraded && !allowDegraded);
+  const bool odometryRefused = state.health == OdometryHealth::Faulted ||
+                               (state.health == OdometryHealth::Degraded && !allowDegraded);
   return {.error = error,
           .velocity = velocity,
           .elapsedMs = tick.elapsedMs,

@@ -13,8 +13,8 @@
 namespace cardLib {
 
 namespace {
-constexpr double TEST_FRACTION = 0.10;          // 10 % voltage
-constexpr std::uint32_t SPIN_UP_MS = 800;       // read speed after this
+constexpr double TEST_FRACTION = 0.10;     // 10 % voltage
+constexpr std::uint32_t SPIN_UP_MS = 800;  // read speed after this
 constexpr std::uint32_t SPIN_TOTAL_MS = 1000;
 constexpr double SPEED_TOLERANCE_FRACTION = 0.5;  // within +-50 % of expected (tune)
 constexpr std::uint32_t SETTLE_MS = 300;
@@ -38,8 +38,8 @@ void TestModes::runPending() {
 }
 
 const char* pushDirectionName(double rollAngleDegrees) {
-  constexpr const char* NAMES[] = {"backward",      "backward-left", "left",  "forward-left",
-                                   "forward",       "forward-right", "right", "backward-right"};
+  constexpr const char* NAMES[] = {"backward", "backward-left", "left",  "forward-left",
+                                   "forward",  "forward-right", "right", "backward-right"};
   constexpr double STEP_DEGREES = 45.0;
   const double steps = std::round(wrapDegrees(rollAngleDegrees) / STEP_DEGREES);
   const int index = static_cast<int>(steps) + 4;
@@ -88,8 +88,7 @@ void TestModes::checkModule(std::size_t module, PortCheckReport& report) {
     check.rpm = rpm.value_or(0.0);
     const double expectedRpm = TEST_FRACTION * motorRpm(group->motor(i));
     check.directionOk = check.rpm > 0.0;
-    check.speedOk =
-        std::abs(check.rpm - expectedRpm) <= SPEED_TOLERANCE_FRACTION * expectedRpm;
+    check.speedOk = std::abs(check.rpm - expectedRpm) <= SPEED_TOLERANCE_FRACTION * expectedRpm;
     std::printf("  P%u %+.0f rpm  %s  %s\n", static_cast<unsigned>(check.port), check.rpm,
                 check.directionOk ? "direction ok" : "WRONG DIRECTION",
                 check.speedOk ? "speed ok" : "SPEED? (cartridge)");

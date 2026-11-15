@@ -13,4 +13,6 @@ const cardLib::AutonEntry AUTONS[] = {
 
 }  // namespace
 
-std::span<const cardLib::AutonEntry> autonList() { return AUTONS; }
+std::span<const cardLib::AutonEntry> autonList() {
+  return AUTONS;
+}

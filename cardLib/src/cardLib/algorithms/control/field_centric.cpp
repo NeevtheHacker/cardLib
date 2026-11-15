@@ -17,8 +17,8 @@ StickVector fieldCentricSticks(double forwardStick, double strafeStick, double h
   return {robot.forwardInches, robot.rightInches};
 }
 
-StickVector curvedFieldCentricSticks(double forwardStick, double strafeStick,
-                                     double headingDegrees, const DriveCurve& curve) {
+StickVector curvedFieldCentricSticks(double forwardStick, double strafeStick, double headingDegrees,
+                                     const DriveCurve& curve) {
   const double length = std::hypot(forwardStick, strafeStick);
   if (length == 0.0) {
     return {};

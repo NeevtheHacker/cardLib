@@ -35,8 +35,7 @@ TEST_CASE("target 10 in ahead: linear error 10") {
 }
 
 TEST_CASE("facing 90 degrees off: no linear drive, it turns first") {
-  CHECK(linearSpeedFor(stateAt(0.0, 0.0, 90.0), {0.0, 10.0}) ==
-        doctest::Approx(0.0).epsilon(1e-9));
+  CHECK(linearSpeedFor(stateAt(0.0, 0.0, 90.0), {0.0, 10.0}) == doctest::Approx(0.0).epsilon(1e-9));
 }
 
 TEST_CASE("facing 120 degrees off: linear is negative, never drives away (no cos squared)") {

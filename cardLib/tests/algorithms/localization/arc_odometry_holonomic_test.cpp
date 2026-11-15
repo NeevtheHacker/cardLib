@@ -138,9 +138,10 @@ TEST_CASE("holonomic drive: a slipping wheel raises driveSlipSuspect; agreeing w
 }
 
 TEST_CASE("a tank never raises driveSlipSuspect: two wheels always fit exactly") {
-  ArcOdometry odometry({.hasImu = true, .effectiveTrackWidthInches = 12.0,
-                        .driveKinematics = DriveKinematics{{-6.0, 0.0, 0.0, 60.0},
-                                                           {6.0, 0.0, 0.0, 60.0}}});
+  ArcOdometry odometry(
+      {.hasImu = true,
+       .effectiveTrackWidthInches = 12.0,
+       .driveKinematics = DriveKinematics{{-6.0, 0.0, 0.0, 60.0}, {6.0, 0.0, 0.0, 60.0}}});
   RobotState state;
   for (int i = 0; i < 20; ++i) {
     SensorFrame frame;

@@ -16,8 +16,8 @@ MechanismController::MechanismController(const MechanismConfig& config)
 
 double MechanismController::update(double target, double position, double dtSeconds) {
   const double error = clampTarget(target) - position;
-  const double output = std::clamp(m_pid.update(error, dtSeconds) + gravityHold(position),
-                                   -MAX_SPEED, MAX_SPEED);
+  const double output =
+      std::clamp(m_pid.update(error, dtSeconds) + gravityHold(position), -MAX_SPEED, MAX_SPEED);
   if (pushesIntoHardStop(output, position)) {
     return 0.0;
   }

@@ -36,8 +36,7 @@ void Turn::start(const RobotState& state) {
     m_targetHeadingDegrees = state.pose.headingDegrees;
   }
   m_pid.reset();
-  m_exits.reset(
-      makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
+  m_exits.reset(makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
 }
 
 void Turn::updateTargetHeading(const Pose& pose) {

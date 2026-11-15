@@ -40,7 +40,9 @@ std::atomic<bool> g_stopping{false};
 FakeTask g_mainTask;
 thread_local FakeTask* t_current = nullptr;
 
-FakeTask& currentTask() { return t_current != nullptr ? *t_current : g_mainTask; }
+FakeTask& currentTask() {
+  return t_current != nullptr ? *t_current : g_mainTask;
+}
 
 void throwIfStopping() {
   if (t_current != nullptr && g_stopping.load()) {
@@ -80,15 +82,15 @@ namespace c {
 extern "C" {
 
 uint32_t millis(void) {
-  return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                   fake::Clock::now() - fake::START)
-                                   .count());
+  return static_cast<uint32_t>(
+      std::chrono::duration_cast<std::chrono::milliseconds>(fake::Clock::now() - fake::START)
+          .count());
 }
 
 uint64_t micros(void) {
-  return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
-                                   fake::Clock::now() - fake::START)
-                                   .count());
+  return static_cast<uint64_t>(
+      std::chrono::duration_cast<std::chrono::microseconds>(fake::Clock::now() - fake::START)
+          .count());
 }
 
 void delay(const uint32_t milliseconds) {
@@ -111,7 +113,9 @@ task_t task_create(task_fn_t function, void* const parameters, uint32_t, const u
   return raw;
 }
 
-task_t task_get_current() { return &fake::currentTask(); }
+task_t task_get_current() {
+  return &fake::currentTask();
+}
 
 uint32_t task_notify(task_t task) {
   auto* target = static_cast<fake::FakeTask*>(task);
@@ -128,7 +132,8 @@ uint32_t task_notify_take(bool clear_on_exit, uint32_t timeout) {
   std::unique_lock<std::mutex> lock(self.mutex);
   const auto wake = fake::Clock::now() + std::chrono::milliseconds(timeout);
   while (self.notifications == 0 && fake::Clock::now() < wake) {
-    self.notified.wait_until(lock, std::min(wake, fake::Clock::now() + std::chrono::milliseconds(5)));
+    self.notified.wait_until(lock,
+                             std::min(wake, fake::Clock::now() + std::chrono::milliseconds(5)));
     if (fake::t_current != nullptr && fake::g_stopping.load()) {
       throw fake::TaskStopped{};
     }
@@ -138,13 +143,17 @@ uint32_t task_notify_take(bool clear_on_exit, uint32_t timeout) {
   return count;
 }
 
-double battery_get_capacity(void) { return fake::batteryPercent(); }
+double battery_get_capacity(void) {
+  return fake::batteryPercent();
+}
 
 v5_device_e_t get_plugged_type(uint8_t port) {
   return static_cast<v5_device_e_t>(fake::pluggedType(port));
 }
 
-adi_port_config_e_t adi_port_get_config(uint8_t) { return E_ADI_DIGITAL_OUT; }
+adi_port_config_e_t adi_port_get_config(uint8_t) {
+  return E_ADI_DIGITAL_OUT;
+}
 
 }  // extern "C"
 }  // namespace c
@@ -165,9 +174,13 @@ mutex_t Mutex::lazy_init() {
   return created;
 }
 
-Mutex::~Mutex() { delete static_cast<std::timed_mutex*>(mutex.load()); }
+Mutex::~Mutex() {
+  delete static_cast<std::timed_mutex*>(mutex.load());
+}
 
-bool Mutex::take() { return take(TIMEOUT_MAX); }
+bool Mutex::take() {
+  return take(TIMEOUT_MAX);
+}
 
 bool Mutex::take(std::uint32_t timeout) {
   auto* raw = static_cast<std::timed_mutex*>(lazy_init());
@@ -183,11 +196,17 @@ bool Mutex::give() {
   return true;
 }
 
-void Mutex::lock() { take(); }
+void Mutex::lock() {
+  take();
+}
 
-void Mutex::unlock() { give(); }
+void Mutex::unlock() {
+  give();
+}
 
-bool Mutex::try_lock() { return take(0); }
+bool Mutex::try_lock() {
+  return take(0);
+}
 
 void Task::delay_until(std::uint32_t* const prev_time, const std::uint32_t delta) {
   const std::uint32_t wakeMs = *prev_time + delta;

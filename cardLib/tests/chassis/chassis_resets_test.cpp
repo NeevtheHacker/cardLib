@@ -75,8 +75,9 @@ TEST_CASE("resetFromGps: sets x and y, keeps the heading unless asked, refuses a
   fake::TaskGuard guard;
   REQUIRE(chassis.initialize().state == ReadyState::Ready);
 
-  fake::setGpsSample(Robot::GPS_PORT, GpsSample{.xInches = 10.0, .yInches = -20.0,
-                                                .headingDegrees = 5.0, .errorInches = 0.5});
+  fake::setGpsSample(
+      Robot::GPS_PORT,
+      GpsSample{.xInches = 10.0, .yInches = -20.0, .headingDegrees = 5.0, .errorInches = 0.5});
   pros::c::delay(GPS_SETTLE_MS);
   REQUIRE(chassis.resetFromGps() == ResetResult::Applied);
   pros::c::delay(SETTLE_MS);
@@ -88,8 +89,9 @@ TEST_CASE("resetFromGps: sets x and y, keeps the heading unless asked, refuses a
   pros::c::delay(SETTLE_MS);
   CHECK(chassis.getPose().headingDegrees == doctest::Approx(5.0));
 
-  fake::setGpsSample(Robot::GPS_PORT, GpsSample{.xInches = 30.0, .yInches = 30.0,
-                                                .headingDegrees = 5.0, .errorInches = 3.0});
+  fake::setGpsSample(
+      Robot::GPS_PORT,
+      GpsSample{.xInches = 30.0, .yInches = 30.0, .headingDegrees = 5.0, .errorInches = 3.0});
   pros::c::delay(GPS_SETTLE_MS);
   CHECK(chassis.resetFromGps() == ResetResult::ErrorTooHigh);
   CHECK(chassis.getPose().xInches == doctest::Approx(10.0).epsilon(0.001));
@@ -110,8 +112,8 @@ TEST_CASE("resets refuse while the robot is moving") {
   // Every corner wheel rolling forward 0.5 in per loop: about 35 in/s forward.
   for (int loop = 1; loop <= 20; ++loop) {
     const double degrees = loop * 0.5 / (3.25 * 3.14159265) * 360.0;
-    for (const std::uint8_t port : {Robot::FRONT_LEFT, Robot::FRONT_RIGHT, Robot::BACK_LEFT,
-                                    Robot::BACK_RIGHT}) {
+    for (const std::uint8_t port :
+         {Robot::FRONT_LEFT, Robot::FRONT_RIGHT, Robot::BACK_LEFT, Robot::BACK_RIGHT}) {
       fake::setMotorDegrees(port, degrees);
     }
     pros::c::delay(10);

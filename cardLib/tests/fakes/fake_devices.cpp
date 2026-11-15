@@ -41,7 +41,9 @@ struct State {
 std::mutex g_mutex;
 State g_state;
 
-PortState& port(std::uint8_t index) { return g_state.ports[index < PORTS ? index : 0]; }
+PortState& port(std::uint8_t index) {
+  return g_state.ports[index < PORTS ? index : 0];
+}
 
 }  // namespace
 
@@ -60,13 +62,25 @@ int pluggedType(std::uint8_t index) {
   return port(index).pluggedType;
 }
 
-void plugMotor(std::uint8_t index) { plug(index, DEVICE_MOTOR); }
-void plugImu(std::uint8_t index) { plug(index, DEVICE_IMU); }
-void plugRotation(std::uint8_t index) { plug(index, DEVICE_ROTATION); }
-void plugDistance(std::uint8_t index) { plug(index, DEVICE_DISTANCE); }
-void plugGps(std::uint8_t index) { plug(index, DEVICE_GPS); }
+void plugMotor(std::uint8_t index) {
+  plug(index, DEVICE_MOTOR);
+}
+void plugImu(std::uint8_t index) {
+  plug(index, DEVICE_IMU);
+}
+void plugRotation(std::uint8_t index) {
+  plug(index, DEVICE_ROTATION);
+}
+void plugDistance(std::uint8_t index) {
+  plug(index, DEVICE_DISTANCE);
+}
+void plugGps(std::uint8_t index) {
+  plug(index, DEVICE_GPS);
+}
 
-double batteryPercent() { return 100.0; }
+double batteryPercent() {
+  return 100.0;
+}
 
 std::int32_t motorMillivolts(std::uint8_t index) {
   const std::lock_guard<std::mutex> lock(g_mutex);
@@ -107,8 +121,7 @@ void setGpsSample(std::uint8_t index, std::optional<cardLib::GpsSample> sample) 
 
 namespace cardLib {
 
-MotorGroup::MotorGroup(std::initializer_list<MotorConfig> motors, const char* role)
-    : m_role(role) {
+MotorGroup::MotorGroup(std::initializer_list<MotorConfig> motors, const char* role) : m_role(role) {
   for (const MotorConfig& motor : motors) {
     if (m_count == MAX_MOTORS_PER_GROUP) {
       m_tooManyMotors = true;
@@ -118,7 +131,9 @@ MotorGroup::MotorGroup(std::initializer_list<MotorConfig> motors, const char* ro
   }
 }
 
-bool MotorGroup::initialize() { return !m_tooManyMotors; }
+bool MotorGroup::initialize() {
+  return !m_tooManyMotors;
+}
 
 std::optional<double> MotorGroup::readDegrees() {
   if (m_count == 0) {
@@ -155,11 +170,17 @@ void MotorGroup::moveMillivolts(std::int32_t millivolts) {
   }
 }
 
-void MotorGroup::stop(BrakeMode) { moveMillivolts(0); }
+void MotorGroup::stop(BrakeMode) {
+  moveMillivolts(0);
+}
 
-std::optional<double> MotorGroup::currentAmps(std::size_t) const { return 0.0; }
+std::optional<double> MotorGroup::currentAmps(std::size_t) const {
+  return 0.0;
+}
 
-std::optional<double> MotorGroup::temperatureCelsius(std::size_t) const { return 30.0; }
+std::optional<double> MotorGroup::temperatureCelsius(std::size_t) const {
+  return 30.0;
+}
 
 std::optional<double> MotorGroup::velocityRpm(std::size_t index) const {
   const std::lock_guard<std::mutex> lock(fake::g_mutex);
@@ -173,7 +194,9 @@ bool Imu::startCalibration() {
   return fake::g_state.imuPresent;
 }
 
-bool Imu::isCalibrating() const { return false; }
+bool Imu::isCalibrating() const {
+  return false;
+}
 
 std::optional<double> Imu::readRotationDegrees() {
   const std::lock_guard<std::mutex> lock(fake::g_mutex);
@@ -183,11 +206,17 @@ std::optional<double> Imu::readRotationDegrees() {
   return fake::g_state.imuRotationDegrees;
 }
 
-std::optional<double> Imu::readGyroRateDegreesPerSecond() { return 0.0; }
+std::optional<double> Imu::readGyroRateDegreesPerSecond() {
+  return 0.0;
+}
 
-std::optional<ImuOrientation> Imu::physicalOrientation() const { return ImuOrientation::Flat; }
+std::optional<ImuOrientation> Imu::physicalOrientation() const {
+  return ImuOrientation::Flat;
+}
 
-bool RotationSensor::initialize() { return true; }
+bool RotationSensor::initialize() {
+  return true;
+}
 
 std::optional<double> RotationSensor::readDegrees() {
   const std::lock_guard<std::mutex> lock(fake::g_mutex);
@@ -210,7 +239,9 @@ std::optional<double> DistanceSensor::readInches() {
   return fake::port(m_port).distanceInches;
 }
 
-std::optional<double> DistanceSensor::readConfidence() { return 1.0; }
+std::optional<double> DistanceSensor::readConfidence() {
+  return 1.0;
+}
 
 std::optional<GpsSample> GpsSensor::read() {
   const std::lock_guard<std::mutex> lock(fake::g_mutex);

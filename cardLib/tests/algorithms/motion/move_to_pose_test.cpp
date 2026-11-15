@@ -50,8 +50,8 @@ TEST_CASE("slow but not close: no hand-off, and the drive phase never settles on
   motion.configure({0.0, 24.0, 90.0}, {});
   motion.start(stateAt(0.0, 0.0, 0.0));
   for (std::uint32_t timeMs = 0; timeMs < 290; timeMs += 10) {
-    const MotionStep step = motion.step(stateAt(0.0, 21.5, 0.0, 1.5), {.elapsedMs = timeMs},
-                                        pipeline);
+    const MotionStep step =
+        motion.step(stateAt(0.0, 21.5, 0.0, 1.5), {.elapsedMs = timeMs}, pipeline);
     CHECK_FALSE(step.exit.has_value());
   }
   CHECK(motion.phase() == MoveToPose::Phase::Drive);

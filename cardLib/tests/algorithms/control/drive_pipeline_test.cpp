@@ -66,8 +66,7 @@ TEST_CASE("desaturation keeps the turn and output never exceeds 12000 mV") {
 
 TEST_CASE("pivot with the left side locked: left held at 0, right gets -u") {
   DrivePipeline pipeline(NO_SLEW, NO_SLEW);
-  const DriveCommand command =
-      pipeline.updatePivot({.speed = 63.5, .error = 30.0}, Side::Left, DT);
+  const DriveCommand command = pipeline.updatePivot({.speed = 63.5, .error = 30.0}, Side::Left, DT);
   CHECK(command.leftMillivolts == 0);
   CHECK(command.leftMode == SideMode::Held);
   CHECK(command.rightMillivolts == -6000);

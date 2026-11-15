@@ -7,13 +7,19 @@
 #include "robot/chassis_setup.hpp"
 
 // Runs once at startup with the robot still: validation and IMU calibration take a few seconds.
-void initialize() { setupRobot(); }
+void initialize() {
+  setupRobot();
+}
 
 void disabled() {}
 
 // Choose the auton on the brain screen (Auton and Auton options pages) while disabled.
 void competition_initialize() {}
 
-void autonomous() { display.runSelectedAuton(); }
+void autonomous() {
+  display.runSelectedAuton();
+}
 
-void opcontrol() { driverControl(); }
+void opcontrol() {
+  driverControl();
+}

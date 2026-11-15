@@ -56,11 +56,13 @@ void OdometryTask::start() {
   m_verticalChecks = {PlausibilityCheck(maxSpeed), PlausibilityCheck(maxSpeed)};
   m_horizontalCheck = PlausibilityCheck(maxSpeed);
   m_driveChecks = makeDriveChecks(maxSpeed);
-  m_task = pros::c::task_create(&OdometryTask::taskEntry, this, PRIORITY,
-                                TASK_STACK_DEPTH_DEFAULT, "cardLib odometry");
+  m_task = pros::c::task_create(&OdometryTask::taskEntry, this, PRIORITY, TASK_STACK_DEPTH_DEFAULT,
+                                "cardLib odometry");
 }
 
-void OdometryTask::taskEntry(void* self) { static_cast<OdometryTask*>(self)->run(); }
+void OdometryTask::taskEntry(void* self) {
+  static_cast<OdometryTask*>(self)->run();
+}
 
 void OdometryTask::run() {
   rebaselineSensors();
@@ -80,7 +82,9 @@ void OdometryTask::run() {
   }
 }
 
-OdometrySnapshot OdometryTask::snapshot() { return *m_shared.lock(); }
+OdometrySnapshot OdometryTask::snapshot() {
+  return *m_shared.lock();
+}
 
 bool OdometryTask::requestReset(const Pose& pose, std::uint32_t timeoutMs) {
   const std::uint32_t before = m_resetsApplied.load();
@@ -267,9 +271,8 @@ void OdometryTask::readGps() {
                        config->fieldXOffsetInches,
                        config->fieldYOffsetInches,
                        config->fieldRotationDegrees};
-  m_gps = {.robotPose = robotPoseFromGps({sample->xInches, sample->yInches,
-                                          sample->headingDegrees},
-                                         mount),
+  m_gps = {.robotPose =
+               robotPoseFromGps({sample->xInches, sample->yInches, sample->headingDegrees}, mount),
            .errorInches = sample->errorInches,
            .valid = true};
 }
@@ -283,8 +286,8 @@ std::optional<double> OdometryTask::verticalWheelInches(std::size_t index) {
   if (!degrees.has_value()) {
     return std::nullopt;
   }
-  const double diameter =
-      m_config.calibration.verticalWheelDiameterInches[index].value_or(wheel->diameterInches.value());
+  const double diameter = m_config.calibration.verticalWheelDiameterInches[index].value_or(
+      wheel->diameterInches.value());
   return encoderDegreesToInches(*degrees, diameter, wheel->gearRatio);
 }
 

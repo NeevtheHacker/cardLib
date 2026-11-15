@@ -59,8 +59,8 @@ void PidController::updateDerivative(double error, double dtSeconds, bool overra
     m_derivative = 0.0;
     return;
   }
-  const double change = m_kind == ErrorKind::Angle ? wrapDegrees(error - m_previousError)
-                                                   : error - m_previousError;
+  const double change =
+      m_kind == ErrorKind::Angle ? wrapDegrees(error - m_previousError) : error - m_previousError;
   const double beta = m_gains.derivativeSmoothing;
   m_derivative = beta * (change / dtSeconds) + (1.0 - beta) * m_derivative;
 }

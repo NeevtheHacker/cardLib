@@ -40,8 +40,7 @@ void Move::start(const RobotState& state) {
   m_start = state.pose;
   m_linearPid.reset();
   m_headingPid.reset();
-  m_exits.reset(
-      makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
+  m_exits.reset(makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
 }
 
 MotionStep Move::step(const RobotState& state, const MotionTick& tick, DrivePipeline& pipeline) {

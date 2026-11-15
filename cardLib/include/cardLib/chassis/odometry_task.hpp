@@ -62,8 +62,7 @@ class OdometryTask {
  public:
   static constexpr std::uint32_t PRIORITY = 10;
 
-  OdometryTask(const ChassisConfig& config, PoseEstimator& estimator,
-               TelemetryBuffer& telemetry);
+  OdometryTask(const ChassisConfig& config, PoseEstimator& estimator, TelemetryBuffer& telemetry);
 
   // Starts the 10 ms task. Call once, after the IMU has calibrated.
   void start();

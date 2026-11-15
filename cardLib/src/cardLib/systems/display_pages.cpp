@@ -307,8 +307,8 @@ void renderPage(DisplayPage page, const DisplayData& data, DisplayScreen& screen
 }
 
 const char* tunerFieldName(std::size_t field) {
-  constexpr const char* NAMES[TUNER_FIELD_COUNT] = {
-      "move kP", "move kD", "heading kP", "turn kP", "turn kD", "pivot kP", "pivot kD"};
+  constexpr const char* NAMES[TUNER_FIELD_COUNT] = {"move kP", "move kD",  "heading kP", "turn kP",
+                                                    "turn kD", "pivot kP", "pivot kD"};
   return field < TUNER_FIELD_COUNT ? NAMES[field] : "?";
 }
 

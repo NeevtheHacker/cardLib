@@ -87,8 +87,7 @@ class Chassis {
   MotionResult move(double distanceInches, const MotionOptions& options = {});
   MotionResult turn(double headingDegrees, const MotionOptions& options = {});
   MotionResult turnToPoint(double xInches, double yInches, const MotionOptions& options = {});
-  MotionResult pivotTurn(double headingDegrees, Side lockedSide,
-                         const MotionOptions& options = {});
+  MotionResult pivotTurn(double headingDegrees, Side lockedSide, const MotionOptions& options = {});
   MotionResult moveToPoint(double xInches, double yInches, const MotionOptions& options = {});
   MotionResult moveToPose(double xInches, double yInches, double headingDegrees,
                           const MotionOptions& options = {});

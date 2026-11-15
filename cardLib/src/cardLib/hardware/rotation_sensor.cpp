@@ -28,7 +28,9 @@ std::optional<double> RotationSensor::readDegrees() {
   return centidegrees / CENTIDEGREES_PER_DEGREE;
 }
 
-bool RotationSensor::reset() { return pros::c::rotation_reset_position(m_port) != PROS_ERR; }
+bool RotationSensor::reset() {
+  return pros::c::rotation_reset_position(m_port) != PROS_ERR;
+}
 
 void RotationSensor::registerPorts(PortRegistry& registry, const char* role,
                                    Requirement requirement) const {

@@ -97,8 +97,8 @@ void addDrive(SensorStatusList& list, const ChassisConfig& config, const Startup
       problem = worse(problem, startupProblem(startup, nullptr, motors->motor(m).port));
     }
   }
-  const bool encoderFault = odometry.leftDriveFaulted || odometry.rightDriveFaulted ||
-                            odometry.state.driveSlipSuspect;
+  const bool encoderFault =
+      odometry.leftDriveFaulted || odometry.rightDriveFaulted || odometry.state.driveSlipSuspect;
   add(list, "drive", statusOf(problem, odometry.driveMotorMissing, encoderFault));
 }
 
@@ -116,8 +116,8 @@ void addFieldSensors(SensorStatusList& list, const SensorConfig& sensors,
   if (sensors.gps != nullptr && sensors.gps->sensor != nullptr) {
     const bool poorFix = !odometry.gps.valid || odometry.gps.errorInches > GPS_SUSPECT_ERROR_INCHES;
     add(list, "GPS",
-        statusOf(startupProblem(startup, nullptr, sensors.gps->sensor->port()),
-                 odometry.gpsFaulted, poorFix));
+        statusOf(startupProblem(startup, nullptr, sensors.gps->sensor->port()), odometry.gpsFaulted,
+                 poorFix));
   }
 }
 

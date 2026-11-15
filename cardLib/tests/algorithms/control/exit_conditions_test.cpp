@@ -101,12 +101,12 @@ TEST_CASE("a stall far from the target returns Stalled after 300 ms") {
 }
 
 TEST_CASE("with current stall detection on, a stall also needs the current check") {
-  ExitConditions exits({.windows = MOVE_EXIT_WINDOWS, .timeoutMs = 3000,
-                        .useCurrentForStall = true});
+  ExitConditions exits(
+      {.windows = MOVE_EXIT_WINDOWS, .timeoutMs = 3000, .useCurrentForStall = true});
   CHECK_FALSE(firstFireMs(exits, {.error = 10.0, .velocity = 0.1}, 1000).has_value());
   exits.reset();
-  CHECK(firstFireMs(exits, {.error = 10.0, .velocity = 0.1, .currentConfirmsStall = true},
-                    1000) == 300u);
+  CHECK(firstFireMs(exits, {.error = 10.0, .velocity = 0.1, .currentConfirmsStall = true}, 1000) ==
+        300u);
 }
 
 TEST_CASE("currentConfirmsStall needs at least half the motors over the threshold") {

@@ -38,8 +38,7 @@ pros::motor_brake_mode_e_t toBrakeMode(BrakeMode mode) {
 
 }  // namespace
 
-MotorGroup::MotorGroup(std::initializer_list<MotorConfig> motors, const char* role)
-    : m_role(role) {
+MotorGroup::MotorGroup(std::initializer_list<MotorConfig> motors, const char* role) : m_role(role) {
   for (const MotorConfig& motor : motors) {
     if (m_count == MAX_MOTORS_PER_GROUP) {
       m_tooManyMotors = true;

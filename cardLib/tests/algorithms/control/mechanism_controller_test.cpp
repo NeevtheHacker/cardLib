@@ -38,10 +38,8 @@ TEST_CASE("soft limits clamp the target") {
 }
 
 TEST_CASE("output pushing into a hard stop is cut inside the band; moving away is allowed") {
-  const MechanismConfig config{.gains = {.kP = 1.0},
-                               .hardStopMin = 0.0,
-                               .hardStopMax = 100.0,
-                               .hardStopBand = 1.0};
+  const MechanismConfig config{
+      .gains = {.kP = 1.0}, .hardStopMin = 0.0, .hardStopMax = 100.0, .hardStopBand = 1.0};
   MechanismController arm(config);
   CHECK(arm.update(150.0, 99.5, DT) == doctest::Approx(0.0));
   CHECK(arm.update(50.0, 99.5, DT) == doctest::Approx(-49.5));

@@ -26,8 +26,7 @@ double DriveSim::nextSpeed(double speed, std::int32_t millivolts, SideMode mode,
 
 void DriveSim::advance(double dtSeconds) {
   m_leftSpeed = nextSpeed(m_leftSpeed, m_command.leftMillivolts, m_command.leftMode, dtSeconds);
-  m_rightSpeed =
-      nextSpeed(m_rightSpeed, m_command.rightMillivolts, m_command.rightMode, dtSeconds);
+  m_rightSpeed = nextSpeed(m_rightSpeed, m_command.rightMillivolts, m_command.rightMode, dtSeconds);
 
   SensorFrame motion;
   motion.dtSeconds = dtSeconds;

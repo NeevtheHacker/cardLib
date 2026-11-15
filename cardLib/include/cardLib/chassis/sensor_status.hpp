@@ -1,5 +1,6 @@
 // sensor_status.hpp
-// Why: one OK / Suspect / Faulted / Wrong / Missing word per configured sensor, for the Sensors page
+// Why: one OK / Suspect / Faulted / Wrong / Missing word per configured sensor, for the Sensors
+// page
 //      (SPEC 21.4), decided here so the screen code holds no robot logic.
 // Owns: SensorStatus and sensorStatus(). No state.
 #pragma once

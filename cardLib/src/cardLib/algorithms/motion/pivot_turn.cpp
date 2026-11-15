@@ -36,8 +36,7 @@ void PivotTurn::start(const RobotState& state) {
   m_startHeadingDegrees = state.pose.headingDegrees;
   m_direction = m_options.direction;
   m_pid.reset();
-  m_exits.reset(
-      makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
+  m_exits.reset(makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
 }
 
 MotionStep PivotTurn::step(const RobotState& state, const MotionTick& tick,

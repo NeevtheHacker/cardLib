@@ -32,8 +32,7 @@ void MoveToPoint::start(const RobotState& state) {
   m_travelledInches = 0.0;
   m_linearPid.reset();
   m_headingPid.reset();
-  m_exits.reset(
-      makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
+  m_exits.reset(makeExitSettings(m_settings.exitWindows, m_options, m_settings.useCurrentForStall));
 }
 
 double MoveToPoint::distanceToTargetInches(const Pose& pose) const {
@@ -65,8 +64,8 @@ MotionStep MoveToPoint::step(const RobotState& state, const MotionTick& tick,
   const ChannelRequest angular{m_headingPid.update(headingError, tick.dtSeconds), headingError,
                                correctionChannelLimits(m_options)};
 
-  m_travelledInches += std::hypot(state.pose.xInches - m_lastPose.xInches,
-                                  state.pose.yInches - m_lastPose.yInches);
+  m_travelledInches +=
+      std::hypot(state.pose.xInches - m_lastPose.xInches, state.pose.yInches - m_lastPose.yInches);
   m_lastPose = state.pose;
 
   MotionStep result;

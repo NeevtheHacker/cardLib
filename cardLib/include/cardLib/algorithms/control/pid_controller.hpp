@@ -10,10 +10,10 @@ struct PidGains {
   double kP = 0.0;
   double kI = 0.0;
   double kD = 0.0;
-  double integralZone = 0.0;           // integrate only while |e| < zone; 0 = always
-  double integralLimit = 127.0;        // cap on |kI * I|, speed units
-  bool resetOnSignFlip = true;         // zero the integral when the error changes sign
-  double derivativeSmoothing = 1.0;    // beta: 1 = no filter
+  double integralZone = 0.0;         // integrate only while |e| < zone; 0 = always
+  double integralLimit = 127.0;      // cap on |kI * I|, speed units
+  bool resetOnSignFlip = true;       // zero the integral when the error changes sign
+  double derivativeSmoothing = 1.0;  // beta: 1 = no filter
 };
 
 // Distances subtract errors directly; angles wrap the change so +179 -> -179 is 2 degrees.

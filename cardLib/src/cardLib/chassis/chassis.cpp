@@ -221,11 +221,17 @@ bool Chassis::setPose(double xInches, double yInches, double headingDegrees) {
   return m_odometry.requestReset({xInches, yInches, headingDegrees});
 }
 
-Pose Chassis::getPose() { return m_odometry.snapshot().state.pose; }
+Pose Chassis::getPose() {
+  return m_odometry.snapshot().state.pose;
+}
 
-RobotState Chassis::getState() { return m_odometry.snapshot().state; }
+RobotState Chassis::getState() {
+  return m_odometry.snapshot().state;
+}
 
-OdometryHealth Chassis::odomHealth() { return m_odometry.snapshot().state.health; }
+OdometryHealth Chassis::odomHealth() {
+  return m_odometry.snapshot().state.health;
+}
 
 ResetResult Chassis::resetFromWall(std::size_t sensorIndex, Wall wall,
                                    const WallResetOptions& options) {
@@ -283,18 +289,18 @@ ResetResult Chassis::applyReset(const PoseResetDecision& decision) {
 // --- motions ------------------------------------------------------------------------------------
 
 MotionResult Chassis::move(double distanceInches, const MotionOptions& options) {
-  return runMotion({.kind = MotionKind::Move, .distanceInches = distanceInches,
-                    .options = options});
+  return runMotion(
+      {.kind = MotionKind::Move, .distanceInches = distanceInches, .options = options});
 }
 
 MotionResult Chassis::turn(double headingDegrees, const MotionOptions& options) {
-  return runMotion({.kind = MotionKind::Turn, .target = {0.0, 0.0, headingDegrees},
-                    .options = options});
+  return runMotion(
+      {.kind = MotionKind::Turn, .target = {0.0, 0.0, headingDegrees}, .options = options});
 }
 
 MotionResult Chassis::turnToPoint(double xInches, double yInches, const MotionOptions& options) {
-  return runMotion({.kind = MotionKind::TurnToPoint, .target = {xInches, yInches, 0.0},
-                    .options = options});
+  return runMotion(
+      {.kind = MotionKind::TurnToPoint, .target = {xInches, yInches, 0.0}, .options = options});
 }
 
 MotionResult Chassis::pivotTurn(double headingDegrees, Side lockedSide,
@@ -306,8 +312,8 @@ MotionResult Chassis::pivotTurn(double headingDegrees, Side lockedSide,
 }
 
 MotionResult Chassis::moveToPoint(double xInches, double yInches, const MotionOptions& options) {
-  return runMotion({.kind = MotionKind::MoveToPoint, .target = {xInches, yInches, 0.0},
-                    .options = options});
+  return runMotion(
+      {.kind = MotionKind::MoveToPoint, .target = {xInches, yInches, 0.0}, .options = options});
 }
 
 MotionResult Chassis::moveToPose(double xInches, double yInches, double headingDegrees,
@@ -318,8 +324,8 @@ MotionResult Chassis::moveToPose(double xInches, double yInches, double headingD
 }
 
 MotionResult Chassis::strafe(double distanceInches, const MotionOptions& options) {
-  return runMotion({.kind = MotionKind::Strafe, .distanceInches = distanceInches,
-                    .options = options});
+  return runMotion(
+      {.kind = MotionKind::Strafe, .distanceInches = distanceInches, .options = options});
 }
 
 MotionResult Chassis::pivotTurn(double headingDegrees, const LocalOffset& pivotPoint,
@@ -363,8 +369,8 @@ bool Chassis::supports(const MotionCommand& command) const {
 // The motion never starts, but the black box still records it (SPEC section 9).
 MotionResult Chassis::refuseUnsupported(const MotionCommand& command) {
   const Pose pose = getPose();
-  m_history.add({command.kind, command.target, pose, pose, MotionResult::Unsupported,
-                 pros::millis(), 0});
+  m_history.add(
+      {command.kind, command.target, pose, pose, MotionResult::Unsupported, pros::millis(), 0});
   return MotionResult::Unsupported;
 }
 
@@ -379,9 +385,13 @@ MotionResult Chassis::waitUntilDone() {
   return m_motion.waitUntilDone(m_lastMotionId.load());
 }
 
-bool Chassis::isMoving() { return m_motion.status().moving; }
+bool Chassis::isMoving() {
+  return m_motion.status().moving;
+}
 
-void Chassis::cancel() { m_motion.cancel(); }
+void Chassis::cancel() {
+  m_motion.cancel();
+}
 
 // --- driver control -----------------------------------------------------------------------------
 
@@ -417,7 +427,9 @@ void Chassis::setDriveMode(DriveMode mode) {
   }
 }
 
-void Chassis::resetFieldHeading() { m_fieldForwardDegrees.store(getPose().headingDegrees); }
+void Chassis::resetFieldHeading() {
+  m_fieldForwardDegrees.store(getPose().headingDegrees);
+}
 
 // Field-centric needs a heading it can trust: a configured IMU that hasn't faulted.
 bool Chassis::fieldHeadingAvailable(const OdometrySnapshot& odometry) const {

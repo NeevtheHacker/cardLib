@@ -18,10 +18,10 @@ namespace cardLib {
 // Everything about this loop that isn't the robot's state.
 struct MotionTick {
   double dtSeconds = LOOP_PERIOD_SECONDS;
-  std::uint32_t elapsedMs = 0;      // since the motion started
-  bool calibrated = true;           // startup validation passed
-  bool cancelled = false;           // cancel() or driver control took over
-  bool driveFault = false;          // a required drive motor stopped answering
+  std::uint32_t elapsedMs = 0;        // since the motion started
+  bool calibrated = true;             // startup validation passed
+  bool cancelled = false;             // cancel() or driver control took over
+  bool driveFault = false;            // a required drive motor stopped answering
   bool currentConfirmsStall = false;  // see currentConfirmsStall(); read only if enabled
 };
 

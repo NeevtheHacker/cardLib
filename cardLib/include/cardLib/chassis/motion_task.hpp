@@ -11,9 +11,9 @@
 
 #include "cardLib/algorithms/control/drive_pipeline.hpp"
 #include "cardLib/algorithms/interfaces/motion_algorithm.hpp"
-#include "cardLib/algorithms/motion/motion_result.hpp"
 #include "cardLib/algorithms/motion/holonomic_move_to_point.hpp"
 #include "cardLib/algorithms/motion/holonomic_move_to_pose.hpp"
+#include "cardLib/algorithms/motion/motion_result.hpp"
 #include "cardLib/algorithms/motion/move.hpp"
 #include "cardLib/algorithms/motion/move_to_point.hpp"
 #include "cardLib/algorithms/motion/move_to_pose.hpp"

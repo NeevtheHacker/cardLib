@@ -64,8 +64,8 @@ std::optional<double> driveTravelInches(const DriveKinematics& kinematics,
   std::array<bool, MAX_WHEEL_MODULES> usable = {};
   usable.fill(true);
   const std::size_t count = std::min(wheelInches.size(), MAX_WHEEL_MODULES);
-  const BodyMotion motion = kinematics.bodyMotion(wheelInches.first(count),
-                                                  std::span<const bool>(usable.data(), count));
+  const BodyMotion motion =
+      kinematics.bodyMotion(wheelInches.first(count), std::span<const bool>(usable.data(), count));
   if (!motion.valid) {
     return std::nullopt;
   }

@@ -19,7 +19,7 @@ struct StickVector {
 // right = s_x cos(theta) - s_y sin(theta).
 StickVector fieldCentricSticks(double forwardStick, double strafeStick, double headingDegrees);
 
-StickVector curvedFieldCentricSticks(double forwardStick, double strafeStick,
-                                     double headingDegrees, const DriveCurve& curve);
+StickVector curvedFieldCentricSticks(double forwardStick, double strafeStick, double headingDegrees,
+                                     const DriveCurve& curve);
 
 }  // namespace cardLib

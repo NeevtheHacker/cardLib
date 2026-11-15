@@ -128,8 +128,7 @@ std::optional<double> ArcOdometry::trackingWheelHeadingChange(const SensorFrame&
 
 std::optional<double> ArcOdometry::driveHeadingChange(const SensorFrame& frame) const {
   if (m_holonomicDrive) {
-    return m_driveMotion.valid ? std::optional<double>(m_driveMotion.headingRadians)
-                               : std::nullopt;
+    return m_driveMotion.valid ? std::optional<double>(m_driveMotion.headingRadians) : std::nullopt;
   }
   if (!frame.leftDrive.usable || !frame.rightDrive.usable ||
       m_config.effectiveTrackWidthInches <= 0.0) {
@@ -139,8 +138,7 @@ std::optional<double> ArcOdometry::driveHeadingChange(const SensorFrame& frame) 
 }
 
 // Step 3, forward: correct each vertical wheel with its own offset, then average.
-std::optional<double> ArcOdometry::forwardChange(const SensorFrame& frame,
-                                                 double headingRadians) {
+std::optional<double> ArcOdometry::forwardChange(const SensorFrame& frame, double headingRadians) {
   double sum = 0.0;
   std::size_t used = 0;
   for (std::size_t i = 0; i < m_config.verticalWheelCount && i < MAX_VERTICAL_WHEELS; ++i) {
@@ -161,8 +159,7 @@ std::optional<double> ArcOdometry::forwardChange(const SensorFrame& frame,
 std::optional<double> ArcOdometry::driveForwardChange(const SensorFrame& frame,
                                                       double headingRadians) {
   if (m_holonomicDrive) {
-    return m_driveMotion.valid ? std::optional<double>(m_driveMotion.forwardInches)
-                               : std::nullopt;
+    return m_driveMotion.valid ? std::optional<double>(m_driveMotion.forwardInches) : std::nullopt;
   }
   const double halfTrack = m_config.effectiveTrackWidthInches / 2.0;
   const double left = frame.leftDrive.inches - halfTrack * headingRadians;

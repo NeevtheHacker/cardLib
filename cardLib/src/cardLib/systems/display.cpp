@@ -42,7 +42,9 @@ void Display::start() {
                                 "cardLib display");
 }
 
-void Display::taskEntry(void* self) { static_cast<Display*>(self)->run(); }
+void Display::taskEntry(void* self) {
+  static_cast<Display*>(self)->run();
+}
 
 void Display::run() {
   std::uint32_t wakeTimeMs = pros::millis();

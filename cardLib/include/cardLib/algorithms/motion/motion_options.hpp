@@ -18,7 +18,7 @@ struct MotionOptions {
   double minSpeed = 0.0;   // with earlyExit, lets chained motions flow without stopping
   double earlyExit = 0.0;  // inches or degrees; 0 = off
   std::optional<std::uint32_t> timeoutMs = std::nullopt;  // empty = the chassis default
-  bool forwards = true;    // false drives backwards (moves) or faces away (turnToPoint)
+  bool forwards = true;  // false drives backwards (moves) or faces away (turnToPoint)
   TurnDirection direction = TurnDirection::Shortest;
   bool async = false;          // return MotionResult::Started at once
   bool allowDegraded = false;  // run even when odometry is on a fallback

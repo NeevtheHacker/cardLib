@@ -67,8 +67,8 @@ SimRun SimRobot::run(MotionAlgorithm& motion, std::uint32_t maxMs) {
       return run;
     }
     tick(step.command, elapsedMs);
-    run.trace.push_back({elapsedMs, m_drive.truePose(), m_drive.linearSpeedInchesPerSecond(),
-                         m_state.health});
+    run.trace.push_back(
+        {elapsedMs, m_drive.truePose(), m_drive.linearSpeedInchesPerSecond(), m_state.health});
   }
   m_failLoops = 0;
   run.elapsedMs = maxMs;

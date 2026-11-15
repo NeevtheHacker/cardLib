@@ -83,8 +83,8 @@ Pose recordedTarget(const MotionCommand& command, const Pose& startPose) {
 
 }  // namespace
 
-MotionTask::MotionTask(const ChassisConfig& config, OdometryTask& odometry,
-                       MotionHistory& history, TelemetryBuffer& telemetry)
+MotionTask::MotionTask(const ChassisConfig& config, OdometryTask& odometry, MotionHistory& history,
+                       TelemetryBuffer& telemetry)
     : m_config(config),
       m_drive(resolveDrive(config)),
       m_odometry(odometry),
@@ -110,7 +110,9 @@ void MotionTask::start() {
                                 "cardLib motion");
 }
 
-void MotionTask::taskEntry(void* self) { static_cast<MotionTask*>(self)->run(); }
+void MotionTask::taskEntry(void* self) {
+  static_cast<MotionTask*>(self)->run();
+}
 
 void MotionTask::run() {
   std::uint32_t wakeTimeMs = pros::millis();
@@ -510,11 +512,9 @@ bool MotionTask::currentStallConfirmed(const DriveCommand& command) const {
       }
     }
   }
-  const double commandedSpeed =
-      drivenMillivoltMagnitude(command) / MAX_MILLIVOLTS * MAX_SPEED;
+  const double commandedSpeed = drivenMillivoltMagnitude(command) / MAX_MILLIVOLTS * MAX_SPEED;
   return currentConfirmsStall(std::span<const double>(currents.data(), count),
-                              limits.stallCurrentAmps, commandedSpeed,
-                              limits.stallMinCommandSpeed);
+                              limits.stallCurrentAmps, commandedSpeed, limits.stallMinCommandSpeed);
 }
 
 }  // namespace cardLib

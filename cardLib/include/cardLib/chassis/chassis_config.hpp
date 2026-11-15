@@ -29,9 +29,9 @@ namespace cardLib {
 struct DriveModule {
   MotorGroup* motors = nullptr;
   double wheelDiameterInches = 0.0;
-  double gearRatio = 1.0;  // G_ext: wheel turns per motor output turn, external gears only
-  double xInches = 0.0;    // wheel contact point, right of the robot's center
-  double yInches = 0.0;    // and forward of it
+  double gearRatio = 1.0;         // G_ext: wheel turns per motor output turn, external gears only
+  double xInches = 0.0;           // wheel contact point, right of the robot's center
+  double yInches = 0.0;           // and forward of it
   double rollAngleDegrees = 0.0;  // the way a positive command pushes, clockwise from forward
 };
 
@@ -78,10 +78,10 @@ struct Calibration {
 
 // Tuning.
 struct Gains {
-  PidGains linear = {.kP = 10.0};   // move / moveToPoint distance (tune)
-  PidGains heading = {.kP = 2.0};   // heading hold during moves (tune)
-  PidGains turn = {.kP = 2.0};      // turn / turnToPoint / moveToPose final turn (tune)
-  PidGains pivot = {.kP = 3.0};     // pivotTurn (tune)
+  PidGains linear = {.kP = 10.0};  // move / moveToPoint distance (tune)
+  PidGains heading = {.kP = 2.0};  // heading hold during moves (tune)
+  PidGains turn = {.kP = 2.0};     // turn / turnToPoint / moveToPose final turn (tune)
+  PidGains pivot = {.kP = 3.0};    // pivotTurn (tune)
   SlewRates linearSlew = {.accelPerSecond = 500.0, .decelPerSecond = 1500.0};    // (tune)
   SlewRates angularSlew = {.accelPerSecond = 1500.0, .decelPerSecond = 3000.0};  // (tune)
   PidGains strafe = {.kP = 10.0};  // strafe distance; holonomic moveToPoint uses linear (tune)
@@ -102,18 +102,18 @@ struct Limits {
   ExitWindows moveExits = MOVE_EXIT_WINDOWS;
   ExitWindows turnExits = TURN_EXIT_WINDOWS;
   ExitWindows pivotExits = PIVOT_EXIT_WINDOWS;
-  double settleRadiusInches = 6.0;            // (tune)
-  double handoffRadiusInches = 1.0;           // (tune)
-  double handoffSpeedInchesPerSecond = 3.0;   // (tune)
+  double settleRadiusInches = 6.0;           // (tune)
+  double handoffRadiusInches = 1.0;          // (tune)
+  double handoffSpeedInchesPerSecond = 3.0;  // (tune)
   bool useCurrentForStall = false;
-  double stallCurrentAmps = 2.0;              // below the 2.5 A motor limit (tune)
-  double stallMinCommandSpeed = 20.0;         // speed units (tune)
+  double stallCurrentAmps = 2.0;       // below the 2.5 A motor limit (tune)
+  double stallMinCommandSpeed = 20.0;  // speed units (tune)
   DriveCurve throttleCurve = {};
   DriveCurve turnCurve = {};
-  double velocitySmoothing = 0.5;             // EMA alpha (tune)
-  double imuDriftLimitDegrees = 0.05;         // over the 1 s still check (tune)
+  double velocitySmoothing = 0.5;      // EMA alpha (tune)
+  double imuDriftLimitDegrees = 0.05;  // over the 1 s still check (tune)
   std::uint32_t imuCalibrationTimeoutMs = 3000;
-  double batteryWarningPercent = 30.0;        // (tune)
+  double batteryWarningPercent = 30.0;  // (tune)
   std::uint32_t telemetryChannels = 0;
 };
 

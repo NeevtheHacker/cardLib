@@ -64,7 +64,9 @@ const TrackingWheelConfig* verticalWheel(const SensorConfig& sensors, std::size_
 
 }  // namespace
 
-void CalibrationRoutines::beginRun() { m_start = m_chassis.odometrySnapshot().totals; }
+void CalibrationRoutines::beginRun() {
+  m_start = m_chassis.odometrySnapshot().totals;
+}
 
 bool CalibrationRoutines::spin(double turns, TurnDirection direction, std::uint32_t timeoutMs) {
   const double startDegrees = m_chassis.odometrySnapshot().totals.imuRotationDegrees;
@@ -76,8 +78,7 @@ bool CalibrationRoutines::spin(double turns, TurnDirection direction, std::uint3
   bool reached = false;
   for (std::uint32_t waitedMs = 0; waitedMs < timeoutMs && !reached; waitedMs += POLL_MS) {
     pros::delay(POLL_MS);
-    const double turned =
-        m_chassis.odometrySnapshot().totals.imuRotationDegrees - startDegrees;
+    const double turned = m_chassis.odometrySnapshot().totals.imuRotationDegrees - startDegrees;
     reached = std::abs(turned) >= targetDegrees;
   }
   m_chassis.driveMillivolts(0, 0);
@@ -170,8 +171,7 @@ void CalibrationRoutines::recordSpinRun() {
   SpinRun run;
   for (std::size_t i = 0; i < MAX_VERTICAL_WHEELS; ++i) {
     if (verticalWheel(config.sensors, i) != nullptr) {
-      run.verticalXInches[i] =
-          verticalWheelOffset(change.verticalWheelInches[i], headingRadians);
+      run.verticalXInches[i] = verticalWheelOffset(change.verticalWheelInches[i], headingRadians);
     }
   }
   if (config.sensors.horizontalWheel != nullptr) {
@@ -300,8 +300,9 @@ void CalibrationRoutines::printResults() const {
   printValue("effectiveTrackWidthInches", combine(measured.trackWidths),
              offsetRunsAgree(measured.trackWidths));
   if (!isTankDrive(m_chassis.drive())) {
-    std::printf("// holonomic drive: driveScale from forward kinematics; effectiveTrackWidth"
-                " not measured (not used)\n");
+    std::printf(
+        "// holonomic drive: driveScale from forward kinematics; effectiveTrackWidth"
+        " not measured (not used)\n");
   }
   for (std::size_t i = 0; i < MAX_DISTANCE_SENSORS; ++i) {
     if (const std::optional<LineFit> fit = distanceFit(i)) {
