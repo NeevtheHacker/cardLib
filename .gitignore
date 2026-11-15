@@ -1,0 +1,15 @@
+# .gitignore
+# Why: keeps build outputs and packaged zips out of the repository (SPEC 22.1).
+# Owns: the repo-wide ignore rules. The PROS projects keep their own .gitignore too.
+
+# MkDocs site output
+site/
+
+# Build outputs (laptop tests, PROS)
+build/
+bin/
+.d/
+
+# Packaged zips (pros make template, starter zips). Release copies go in release/ on purpose.
+*.zip
+!release/*.zip

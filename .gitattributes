@@ -1,2 +1,30 @@
-# Shell scripts must keep LF line endings, or bash rejects them.
+# .gitattributes
+# Why: the same line endings for everyone, whatever their OS (SPEC 22.1).
+# Owns: line-ending rules. Text is stored with LF; shell scripts are also checked out with LF,
+#       or bash rejects them.
+* text=auto
+
 *.sh text eol=lf
+
+*.c text
+*.cpp text
+*.h text
+*.hpp text
+*.md text
+*.yml text
+*.yaml text
+*.txt text
+*.json text
+*.pros text
+*.mk text
+Makefile text
+.clang-format text
+.gitattributes text
+.gitignore text
+
+*.a binary
+*.bin binary
+*.elf binary
+*.zip binary
+*.png binary
+*.jpg binary
