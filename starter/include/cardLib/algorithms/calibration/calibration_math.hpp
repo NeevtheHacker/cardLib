@@ -6,6 +6,7 @@
 #include <optional>
 #include <span>
 
+#include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/math/pose.hpp"
 
 namespace cardLib {
@@ -20,6 +21,12 @@ std::optional<double> trackingWheelDiameter(double nominalDiameterInches, double
 
 // 3. s_drive = L / d_drive.
 std::optional<double> driveScale(double tapedInches, double driveMeasuredInches);
+
+// 3, any drive: d_drive from each drive wheel's travel (inches, in module order) through
+// least-squares forward kinematics (SPEC 20.12): the length of the robot's (right, forward)
+// move. On a tank that is the mean of the two sides. Empty if the wheels can't tell the motion.
+std::optional<double> driveTravelInches(const DriveKinematics& kinematics,
+                                        std::span<const double> wheelInches);
 
 // 4. From a pure spin (total IMU change in radians): s_v = -dv / dtheta, s_h = dh / dtheta.
 std::optional<double> verticalWheelOffset(double wheelInches, double headingChangeRadians);

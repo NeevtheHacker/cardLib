@@ -4,6 +4,7 @@
 #include "cardLib/algorithms/calibration/calibration_math.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 #include "cardLib/algorithms/math/angle.hpp"
@@ -53,6 +54,22 @@ std::optional<double> trackingWheelDiameter(double nominalDiameterInches, double
 
 std::optional<double> driveScale(double tapedInches, double driveMeasuredInches) {
   return divide(tapedInches, driveMeasuredInches);
+}
+
+std::optional<double> driveTravelInches(const DriveKinematics& kinematics,
+                                        std::span<const double> wheelInches) {
+  if (wheelInches.empty() || kinematics.wheelCount() == 0) {
+    return std::nullopt;
+  }
+  std::array<bool, MAX_WHEEL_MODULES> usable = {};
+  usable.fill(true);
+  const std::size_t count = std::min(wheelInches.size(), MAX_WHEEL_MODULES);
+  const BodyMotion motion = kinematics.bodyMotion(wheelInches.first(count),
+                                                  std::span<const bool>(usable.data(), count));
+  if (!motion.valid) {
+    return std::nullopt;
+  }
+  return std::hypot(motion.rightInches, motion.forwardInches);
 }
 
 std::optional<double> verticalWheelOffset(double wheelInches, double headingChangeRadians) {

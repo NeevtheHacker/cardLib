@@ -89,3 +89,40 @@ TEST_CASE("UMBmark score is the larger of the clockwise and counterclockwise cen
   CHECK(*score == doctest::Approx(std::numbers::sqrt2 * 2.0));
   CHECK_FALSE(umbmarkScore({}, counterclockwise).has_value());
 }
+
+namespace {
+// An X-drive with example positions; only positions and roll angles matter here.
+constexpr DriveKinematics X_DRIVE{{-6.0, 6.0, 45.0, 1.0},
+                                  {6.0, 6.0, -45.0, 1.0},
+                                  {-6.0, -6.0, -45.0, 1.0},
+                                  {6.0, -6.0, 45.0, 1.0}};
+constexpr DriveKinematics TANK{{-6.0, 0.0, 0.0, 1.0}, {6.0, 0.0, 0.0, 1.0}};
+}  // namespace
+
+TEST_CASE("drive travel through forward kinematics: an X-drive pushed 72 in forward") {
+  const double each = 72.0 * std::numbers::sqrt2 / 2.0;  // a 45 degree wheel rolls cos 45 of it
+  const std::array<double, 4> wheels{each, each, each, each};
+  const auto travel = driveTravelInches(X_DRIVE, wheels);
+  REQUIRE(travel.has_value());
+  CHECK(*travel == doctest::Approx(72.0));
+}
+
+TEST_CASE("drive travel through forward kinematics: an X-drive pushed 72 in to the right") {
+  const double each = 72.0 * std::numbers::sqrt2 / 2.0;
+  const std::array<double, 4> wheels{each, -each, -each, each};  // SPEC 20.3 strafe pattern
+  const auto travel = driveTravelInches(X_DRIVE, wheels);
+  REQUIRE(travel.has_value());
+  CHECK(*travel == doctest::Approx(72.0));
+}
+
+TEST_CASE("drive travel through forward kinematics: a tank is the mean of its sides") {
+  const std::array<double, 2> wheels{70.0, 74.0};
+  const auto travel = driveTravelInches(TANK, wheels);
+  REQUIRE(travel.has_value());
+  CHECK(*travel == doctest::Approx(72.0));
+}
+
+TEST_CASE("drive travel is empty when the wheels can't tell the motion") {
+  CHECK_FALSE(driveTravelInches(X_DRIVE, std::span<const double>()).has_value());
+  CHECK_FALSE(driveTravelInches(DriveKinematics{}, std::array<double, 1>{3.0}).has_value());
+}

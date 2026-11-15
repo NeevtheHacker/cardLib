@@ -3,6 +3,7 @@
 // Owns: nothing beyond CalibrationRoutines' recorded runs.
 #include "cardLib/systems/calibration_routines.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <span>
@@ -93,6 +94,9 @@ SensorTotals CalibrationRoutines::changeSinceStart() const {
   change.horizontalWheelInches = now.horizontalWheelInches - m_start.horizontalWheelInches;
   change.leftDriveInches = now.leftDriveInches - m_start.leftDriveInches;
   change.rightDriveInches = now.rightDriveInches - m_start.rightDriveInches;
+  for (std::size_t i = 0; i < MAX_WHEEL_MODULES; ++i) {
+    change.driveWheelInches[i] = now.driveWheelInches[i] - m_start.driveWheelInches[i];
+  }
   change.imuRotationDegrees = now.imuRotationDegrees - m_start.imuRotationDegrees;
   return change;
 }
@@ -130,12 +134,24 @@ void CalibrationRoutines::recordPushRun(double tapedInches) {
           currentVerticalDiameter(i), tapedInches, std::abs(change.verticalWheelInches[i]));
     }
   }
-  const double driveInches =
-      (std::abs(change.leftDriveInches) + std::abs(change.rightDriveInches)) / 2.0;
-  if (const std::optional<double> scale = driveScale(tapedInches, driveInches)) {
-    run.driveScale = *scale * m_chassis.config().calibration.driveScale;
+  if (const std::optional<double> driveInches = drivePushInches(change)) {
+    if (const std::optional<double> scale = driveScale(tapedInches, *driveInches)) {
+      run.driveScale = *scale * m_chassis.config().calibration.driveScale;
+    }
   }
   m_pushes.add(run);
+}
+
+// A tank's push is the mean of its two sides. On a holonomic drive the side totals aren't the
+// robot's travel, so each module's travel goes through forward kinematics instead.
+std::optional<double> CalibrationRoutines::drivePushInches(const SensorTotals& change) const {
+  const DriveConfig& drive = m_chassis.drive();
+  if (isTankDrive(drive)) {
+    return (std::abs(change.leftDriveInches) + std::abs(change.rightDriveInches)) / 2.0;
+  }
+  const std::size_t count = std::min(drive.moduleCount, MAX_WHEEL_MODULES);
+  return driveTravelInches(m_chassis.driveKinematics(),
+                           std::span<const double>(change.driveWheelInches.data(), count));
 }
 
 void CalibrationRoutines::recordSidewaysPushRun(double tapedInches) {
@@ -161,8 +177,12 @@ void CalibrationRoutines::recordSpinRun() {
   if (config.sensors.horizontalWheel != nullptr) {
     run.horizontalYInches = horizontalWheelOffset(change.horizontalWheelInches, headingRadians);
   }
-  run.effectiveTrackWidthInches =
-      effectiveTrackWidth(change.leftDriveInches, change.rightDriveInches, headingRadians);
+  // W_eff only means something on a tank; a holonomic drive's heading fallback is forward
+  // kinematics, which needs no track width.
+  if (isTankDrive(m_chassis.drive())) {
+    run.effectiveTrackWidthInches =
+        effectiveTrackWidth(change.leftDriveInches, change.rightDriveInches, headingRadians);
+  }
   m_spins.add(run);
 }
 
@@ -279,6 +299,10 @@ void CalibrationRoutines::printResults() const {
              offsetRunsAgree(measured.horizontalOffsets));
   printValue("effectiveTrackWidthInches", combine(measured.trackWidths),
              offsetRunsAgree(measured.trackWidths));
+  if (!isTankDrive(m_chassis.drive())) {
+    std::printf("// holonomic drive: driveScale from forward kinematics; effectiveTrackWidth"
+                " not measured (not used)\n");
+  }
   for (std::size_t i = 0; i < MAX_DISTANCE_SENSORS; ++i) {
     if (const std::optional<LineFit> fit = distanceFit(i)) {
       std::printf("// distance sensor %u: .gain = %.4f, .offsetInches = %.3f\n",

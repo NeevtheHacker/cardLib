@@ -43,12 +43,14 @@ class CalibrationRoutines {
   void recordImuRun(double turns);
 
   // 2 and 3. After pushing straight forward along a wall a taped distance (72 in or more).
+  // On a holonomic drive the drive scale comes from forward kinematics over every module.
   void recordPushRun(double tapedInches);
 
   // 2, horizontal wheel. After pushing straight sideways (to the right) a taped distance.
   void recordSidewaysPushRun(double tapedInches);
 
-  // 4 and 5. After a spin of several turns (use spin()), each direction.
+  // 4 and 5. After a spin of several turns (use spin()), each direction. 5 (effective track
+  // width) is skipped on a holonomic drive, which doesn't use it.
   void recordSpinRun();
 
   // 6. The distance sensor's current reading against a taped true distance. Three or more.
@@ -109,6 +111,7 @@ class CalibrationRoutines {
 
   Measured measure() const;
   SensorTotals changeSinceStart() const;
+  std::optional<double> drivePushInches(const SensorTotals& change) const;
   double currentVerticalDiameter(std::size_t index) const;
   double currentHorizontalDiameter() const;
   void printValue(const char* name, std::optional<double> value, bool runsAgree) const;
