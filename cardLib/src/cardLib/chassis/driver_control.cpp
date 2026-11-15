@@ -7,16 +7,20 @@
 
 namespace cardLib {
 
+// Each stick drives its side directly: every left wheel and every right wheel (SPEC 20.3).
 DriverCommand DriverControl::tank(double leftStick, double rightStick) const {
-  return {speedToMillivolts(applyDriveCurve(leftStick, m_throttleCurve)),
-          speedToMillivolts(applyDriveCurve(rightStick, m_throttleCurve))};
+  const double left = applyDriveCurve(leftStick, m_throttleCurve);
+  const double right = applyDriveCurve(rightStick, m_throttleCurve);
+  return {.direct = {.leftMillivolts = speedToMillivolts(left),
+                     .rightMillivolts = speedToMillivolts(right)}};
 }
 
-// Arcade uses the same desaturation as autonomous, so a full-throttle turn still turns.
+// Arcade uses the same desaturation as autonomous (mixed by the motion task through the drive's
+// kinematics), so a full-throttle turn still turns.
 DriverCommand DriverControl::arcade(double forwardStick, double turnStick) const {
-  const SideSpeeds sides = mixDrive(applyDriveCurve(forwardStick, m_throttleCurve),
-                                    applyDriveCurve(turnStick, m_turnCurve));
-  return {speedToMillivolts(sides.left), speedToMillivolts(sides.right)};
+  return {.mixSpeeds = true,
+          .speeds = {.forward = applyDriveCurve(forwardStick, m_throttleCurve),
+                     .turn = applyDriveCurve(turnStick, m_turnCurve)}};
 }
 
 void DriverControl::setCurves(const DriveCurve& throttleCurve, const DriveCurve& turnCurve) {

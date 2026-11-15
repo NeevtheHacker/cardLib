@@ -34,8 +34,15 @@ cardLib::AdiDigitalOut clampPiston(CLAMP_PISTON_PORT, false);
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
+// Example positions; measure your own. Replace the Omniwheel size with the push-test diameter.
 const cardLib::TrackingWheelConfig verticalTrackingWheel{
-    .sensor = &verticalTrackingSensor, .diameterInches = 2.75, .xInches = 0.0, .yInches = 0.0};
+    .sensor = &verticalTrackingSensor,
+    .diameterInches = cardLib::Omniwheel::NEW_275,
+    .xInches = 0.0,
+    .yInches = 0.0};
 const cardLib::TrackingWheelConfig horizontalTrackingWheel{
-    .sensor = &horizontalTrackingSensor, .diameterInches = 2.75, .xInches = 0.0, .yInches = -1.5};
+    .sensor = &horizontalTrackingSensor,
+    .diameterInches = cardLib::Omniwheel::NEW_275,
+    .xInches = 0.0,
+    .yInches = -1.5};
 const cardLib::ImuConfig imuConfig{.sensor = &imu, .orientation = cardLib::ImuOrientation::Flat};

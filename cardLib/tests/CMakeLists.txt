@@ -1,5 +1,6 @@
 # CMakeLists.txt
-# Why: builds and registers the laptop tests for algorithms/ and advanced/ (SPEC section 13).
+# Why: builds and registers the laptop tests for algorithms/ and advanced/ (SPEC section 13),
+#      plus header-only hardware/ and chassis/ helpers that never touch PROS.
 # Owns: one test executable per *_test.cpp file. Not part of the robot build.
 cmake_minimum_required(VERSION 3.20)
 project(cardLibTests CXX)
@@ -36,6 +37,7 @@ file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
      ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/*_test.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/advanced/*_test.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/hardware/*_test.cpp
+     ${CMAKE_CURRENT_SOURCE_DIR}/chassis/*_test.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/sim/*_test.cpp)
 foreach(TEST_SOURCE ${TEST_SOURCES})
   get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)

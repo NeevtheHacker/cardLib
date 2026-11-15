@@ -1,13 +1,16 @@
 // chassis_config.hpp
 // Why: the four kinds of robot values (SPEC section 3) kept in four structs, plus the devices.
-// Owns: Geometry, Calibration, Gains, Limits, DriveConfig, SensorConfig, ChassisConfig.
+// Owns: Geometry, Calibration, Gains, Limits, DriveModule, DriveConfig, SensorConfig,
+//       ChassisConfig.
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 
 #include "cardLib/algorithms/control/drive_curve.hpp"
+#include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/control/exit_conditions.hpp"
 #include "cardLib/algorithms/control/pid_controller.hpp"
 #include "cardLib/algorithms/control/slew_limiter.hpp"
@@ -18,9 +21,25 @@
 
 namespace cardLib {
 
+// One driven wheel as the chassis stores it (SPEC 20.1). Robot code builds these with tank(),
+// asterisk() or customDrive() from drive_presets.hpp, whose WheelModule can't leave out the
+// diameter, gearing or roll angle.
+struct DriveModule {
+  MotorGroup* motors = nullptr;
+  double wheelDiameterInches = 0.0;
+  double gearRatio = 1.0;  // G_ext: wheel turns per motor output turn, external gears only
+  double xInches = 0.0;    // wheel contact point, right of the robot's center
+  double yInches = 0.0;    // and forward of it
+  double rollAngleDegrees = 0.0;  // the way a positive command pushes, clockwise from forward
+};
+
+// The drivetrain. Either wheel modules from a preset, or the tank shorthand: left and right
+// motor groups described by Geometry. With modules, Geometry's drive fields are not used.
 struct DriveConfig {
   MotorGroup* left = nullptr;
   MotorGroup* right = nullptr;
+  std::array<DriveModule, MAX_WHEEL_MODULES> modules = {};
+  std::size_t moduleCount = 0;
 };
 
 // Every positional sensor, by pointer to its config (declared once in the robot's devices file).
@@ -32,7 +51,8 @@ struct SensorConfig {
   std::array<const DistanceSensorConfig*, MAX_DISTANCE_SENSORS> distanceSensors = {};
 };
 
-// Physical facts. Change when the robot is rebuilt.
+// Physical facts. Change when the robot is rebuilt. The drive fields describe the tank
+// shorthand (DriveConfig left/right); a drive built from modules carries its own.
 struct Geometry {
   double wheelDiameterInches = 3.25;
   double trackWidthInches = 12.0;
@@ -103,7 +123,27 @@ struct ChassisConfig {
 // The default estimator's settings, from the geometry, sensor configs and calibration.
 ArcOdometryConfig makeArcOdometryConfig(const ChassisConfig& config);
 
-// The chassis' top speed, pi * D * rpm / 60 with rpm = cartridge rpm * G_ext.
+// The drive as wheel modules: the config's own, or the tank shorthand turned into a left and a
+// right module from Geometry. Reads only numbers and pointers, so it is safe in constructors.
+DriveConfig resolveDrive(const ChassisConfig& config);
+
+// True when every module rolls straight forward: a tank, however its wheels are listed.
+bool isTankDrive(const DriveConfig& drive);
+
+// Mean x of the right-side modules minus mean x of the left-side ones; 0 if a side is empty.
+double driveTrackWidthInches(const DriveConfig& drive);
+
+// A module's motor output rpm, from its first motor's type and cartridge (600 if it has none).
+// Reads the motor group, so call it only once the groups exist (from initialize()).
+double moduleMotorRpm(const DriveModule& module);
+
+// The module's top surface speed, pi * D * motorRpm * G_ext / 60 (SPEC 20.5).
+double moduleTopSpeedInchesPerSecond(const DriveModule& module);
+
+// The kinematics of a resolved drive, from each module's own motors (SPEC 20.7).
+DriveKinematics makeDriveKinematics(const DriveConfig& drive);
+
+// The fastest any drive wheel's surface can move: the plausibility check's speed limit.
 double maxDriveSpeedInchesPerSecond(const ChassisConfig& config);
 
 }  // namespace cardLib

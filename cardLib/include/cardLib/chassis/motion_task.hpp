@@ -63,6 +63,10 @@ class MotionTask {
   bool waitUntil(std::uint32_t id, double progress);
 
   MotionStatus status();
+
+  // The resolved drive and its kinematics. Call before start(), once the motor groups exist.
+  void setDrive(const DriveConfig& drive, const DriveKinematics& kinematics);
+
   void setReadyState(ReadyState state);
   void setGains(const Gains& gains);
   void setDriverBrake(BrakeMode mode);
@@ -96,6 +100,7 @@ class MotionTask {
   void stepActive(const OdometrySnapshot& odometry, double dtSeconds, const Intake& intake);
   void finishActive(MotionResult result, bool brake, const Pose& endPose);
   void applyCommand(const DriveCommand& command);
+  WheelCommand wheelCommandFor(const DriveCommand& command, std::size_t module) const;
   void applyDriver(const DriverCommand& command, BrakeMode brake);
   void stopDrive(BrakeMode mode);
   void applyGains(const Gains& gains);
@@ -105,6 +110,7 @@ class MotionTask {
   void publishStatus(const MotionStep& step);
 
   const ChassisConfig& m_config;
+  DriveConfig m_drive;  // resolved: always wheel modules
   OdometryTask& m_odometry;
   MotionHistory& m_history;
   TelemetryBuffer& m_telemetry;

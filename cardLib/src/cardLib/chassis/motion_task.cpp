@@ -41,6 +41,32 @@ MoveToPoseSettings moveToPoseSettings(const Gains& gains, const Limits& limits) 
           limits.handoffRadiusInches, limits.handoffSpeedInchesPerSecond};
 }
 
+// Whether a command leaves every wheel at 0 V and none held, so the drive can brake instead.
+bool isStill(const DriveCommand& command) {
+  if (command.wheelCount == 0) {
+    return command.leftMillivolts == 0 && command.rightMillivolts == 0 &&
+           command.leftMode == SideMode::Driven && command.rightMode == SideMode::Driven;
+  }
+  for (std::size_t i = 0; i < command.wheelCount; ++i) {
+    if (command.wheels[i].millivolts != 0 || command.wheels[i].mode == SideMode::Held) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// The mean |millivolts| the command asks of the drive, for the current stall check.
+double averageMillivoltMagnitude(const DriveCommand& command) {
+  if (command.wheelCount == 0) {
+    return (std::abs(command.leftMillivolts) + std::abs(command.rightMillivolts)) / 2.0;
+  }
+  double sum = 0.0;
+  for (std::size_t i = 0; i < command.wheelCount; ++i) {
+    sum += std::abs(command.wheels[i].millivolts);
+  }
+  return sum / static_cast<double>(command.wheelCount);
+}
+
 // What the black box records as a motion's target.
 Pose recordedTarget(const MotionCommand& command, const Pose& startPose) {
   if (command.kind == MotionKind::Move) {
@@ -54,6 +80,7 @@ Pose recordedTarget(const MotionCommand& command, const Pose& startPose) {
 MotionTask::MotionTask(const ChassisConfig& config, OdometryTask& odometry,
                        MotionHistory& history, TelemetryBuffer& telemetry)
     : m_config(config),
+      m_drive(resolveDrive(config)),
       m_odometry(odometry),
       m_history(history),
       m_telemetry(telemetry),
@@ -168,6 +195,11 @@ MotionStatus MotionTask::status() {
   const MotionStatus copy = m_status;
   m_mutex.give();
   return copy;
+}
+
+void MotionTask::setDrive(const DriveConfig& drive, const DriveKinematics& kinematics) {
+  m_drive = drive;
+  m_pipeline.setKinematics(kinematics);
 }
 
 void MotionTask::setReadyState(ReadyState state) {
@@ -354,32 +386,51 @@ void MotionTask::publishStatus(const MotionStep& step) {
 }
 
 void MotionTask::applyCommand(const DriveCommand& command) {
-  MotorGroup* const left = m_config.drive.left;
-  MotorGroup* const right = m_config.drive.right;
-  if (left != nullptr) {
-    if (command.leftMode == SideMode::Held) {
-      left->stop(BrakeMode::Hold);
-    } else {
-      left->moveMillivolts(command.leftMillivolts);
+  for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
+    MotorGroup* const motors = m_drive.modules[i].motors;
+    if (motors == nullptr) {
+      continue;
     }
-  }
-  if (right != nullptr) {
-    if (command.rightMode == SideMode::Held) {
-      right->stop(BrakeMode::Hold);
+    const WheelCommand wheel = wheelCommandFor(command, i);
+    if (wheel.mode == SideMode::Held) {
+      motors->stop(BrakeMode::Hold);
     } else {
-      right->moveMillivolts(command.rightMillivolts);
+      motors->moveMillivolts(wheel.millivolts);
     }
   }
   m_lastCommand = command;
 }
 
-void MotionTask::applyDriver(const DriverCommand& command, BrakeMode brake) {
+// A per-wheel command gives each module its own entry. A two-side command goes to every module
+// on that side, so all-positive is forward and left-positive, right-negative turns clockwise on
+// any drive (SPEC 20.3). A center module that rolls forward gets the mean; one that doesn't, 0.
+WheelCommand MotionTask::wheelCommandFor(const DriveCommand& command, std::size_t module) const {
+  if (command.wheelCount > 0) {
+    return module < command.wheelCount ? command.wheels[module] : WheelCommand{};
+  }
+  const DriveModule& drive = m_drive.modules[module];
+  if (drive.xInches < 0.0) {
+    return {command.leftMillivolts, command.leftMode};
+  }
+  if (drive.xInches > 0.0) {
+    return {command.rightMillivolts, command.rightMode};
+  }
+  if (drive.rollAngleDegrees != 0.0) {
+    return {};
+  }
+  return {(command.leftMillivolts + command.rightMillivolts) / 2, SideMode::Driven};
+}
+
+void MotionTask::applyDriver(const DriverCommand& driver, BrakeMode brake) {
   m_pipeline.reset();
-  if (command.leftMillivolts == 0 && command.rightMillivolts == 0) {
+  const DriveKinematics& kinematics = m_pipeline.kinematics();
+  const DriveCommand command =
+      driver.mixSpeeds ? toDriveCommand(kinematics.wheelSpeeds(driver.speeds), kinematics)
+                       : driver.direct;
+  if (isStill(command)) {
     stopDrive(brake);
   } else {
-    applyCommand({.leftMillivolts = command.leftMillivolts,
-                  .rightMillivolts = command.rightMillivolts});
+    applyCommand(command);
   }
   m_mutex.take();
   m_status.driverControl = true;
@@ -389,11 +440,10 @@ void MotionTask::applyDriver(const DriverCommand& command, BrakeMode brake) {
 }
 
 void MotionTask::stopDrive(BrakeMode mode) {
-  if (m_config.drive.left != nullptr) {
-    m_config.drive.left->stop(mode);
-  }
-  if (m_config.drive.right != nullptr) {
-    m_config.drive.right->stop(mode);
+  for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
+    if (m_drive.modules[i].motors != nullptr) {
+      m_drive.modules[i].motors->stop(mode);
+    }
   }
   m_lastCommand = {};
 }
@@ -415,18 +465,18 @@ bool MotionTask::currentStallConfirmed(const DriveCommand& command) const {
   if (!limits.useCurrentForStall) {
     return false;
   }
-  std::array<double, 2 * MAX_MOTORS_PER_GROUP> currents = {};
+  std::array<double, MAX_WHEEL_MODULES * MAX_MOTORS_PER_GROUP> currents = {};
   std::size_t count = 0;
-  for (const MotorGroup* group : {m_config.drive.left, m_config.drive.right}) {
+  for (std::size_t module = 0; module < m_drive.moduleCount; ++module) {
+    const MotorGroup* group = m_drive.modules[module].motors;
     for (std::size_t i = 0; group != nullptr && i < group->size(); ++i) {
       if (const std::optional<double> amps = group->currentAmps(i)) {
         currents[count++] = *amps;
       }
     }
   }
-  const double averageMillivolts =
-      (std::abs(command.leftMillivolts) + std::abs(command.rightMillivolts)) / 2.0;
-  const double commandedSpeed = averageMillivolts / MAX_MILLIVOLTS * MAX_SPEED;
+  const double commandedSpeed =
+      averageMillivoltMagnitude(command) / MAX_MILLIVOLTS * MAX_SPEED;
   return currentConfirmsStall(std::span<const double>(currents.data(), count),
                               limits.stallCurrentAmps, commandedSpeed,
                               limits.stallMinCommandSpeed);

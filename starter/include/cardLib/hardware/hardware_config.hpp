@@ -74,4 +74,59 @@ constexpr double cartridgeRpm(Cartridge cartridge) {
   return 0.0;
 }
 
+// The 5.5 W motor has no swappable cartridge: its output is always 200 rpm.
+constexpr double EXP_5_5W_RPM = 200.0;
+
+// Output RPM of a motor: the cartridge's for an 11 W motor, 200 for a 5.5 W one.
+constexpr double motorRpm(MotorType type, Cartridge cartridge) {
+  return type == MotorType::Exp5_5W ? EXP_5_5W_RPM : cartridgeRpm(cartridge);
+}
+constexpr double motorRpm(const MotorConfig& motor) {
+  return motorRpm(motor.type, motor.cartridge);
+}
+
+// The gearset PROS should be told: a 5.5 W motor reports as green.
+constexpr Cartridge effectiveCartridge(const MotorConfig& motor) {
+  return motor.type == MotorType::Exp5_5W ? Cartridge::Green200 : motor.cartridge;
+}
+
+// External gearing between a motor and its wheel: {motorTeeth, wheelTeeth}, e.g. {36, 48} turns
+// 600 rpm into 450, or a ratio (wheel turns per motor turn). No default: a drive can't work
+// without it (SPEC 20.14).
+class Gearing {
+ public:
+  constexpr Gearing(double motorTeeth, double wheelTeeth) : m_ratio(motorTeeth / wheelTeeth) {}
+  constexpr Gearing(double ratio) : m_ratio(ratio) {}  // a plain ratio
+
+  // G_ext: wheel turns per motor output turn.
+  constexpr double ratio() const { return m_ratio; }
+
+ private:
+  double m_ratio;
+};
+
+// wheelRpm = motorRpm * motorTeeth / wheelTeeth (SPEC 20.1).
+constexpr double wheelRpm(double motorOutputRpm, const Gearing& gearing) {
+  return motorOutputRpm * gearing.ratio();
+}
+
+// Approximate measured rolling diameters of VEX omni wheels, in inches: the values LemLib ships
+// (credited in CREDITS.md). Replace with your own measured value after the push test (SPEC 20.2).
+// A plain number is always allowed instead.
+namespace Omniwheel {
+constexpr double NEW_2 = 2.125;
+constexpr double NEW_275 = 2.75;
+constexpr double OLD_275 = 2.75;
+constexpr double NEW_275_HALF = 2.744;
+constexpr double OLD_275_HALF = 2.74;
+constexpr double NEW_325 = 3.25;
+constexpr double OLD_325 = 3.25;
+constexpr double NEW_325_HALF = 3.246;
+constexpr double OLD_325_HALF = 3.246;
+constexpr double NEW_4 = 4.0;
+constexpr double OLD_4 = 4.18;
+constexpr double NEW_4_HALF = 3.995;
+constexpr double OLD_4_HALF = 4.175;
+}  // namespace Omniwheel
+
 }  // namespace cardLib

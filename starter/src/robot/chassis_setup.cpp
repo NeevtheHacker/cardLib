@@ -15,13 +15,12 @@ constexpr const char* CALIBRATION_FILE = "/usd/cardLib/robot.cal";
 
 cardLib::ChassisConfig makeChassisConfig() {
   cardLib::ChassisConfig config;
-  config.drive = {.left = &leftDrive, .right = &rightDrive};
+  // Example values for one robot: 3.25 in omnis, 36:48 external gearing (600 -> 450 rpm),
+  // 12.25 in between the wheel centers. Measure your own and replace them.
+  config.drive = cardLib::tank(leftDrive, rightDrive, cardLib::Omniwheel::NEW_325, {36, 48}, 12.25);
   config.sensors.verticalWheel1 = &verticalTrackingWheel;
   config.sensors.horizontalWheel = &horizontalTrackingWheel;
   config.sensors.imu = &imuConfig;
-
-  // Physical facts: 3.25 in wheels, 36:48 external gearing.
-  config.geometry = {.wheelDiameterInches = 3.25, .trackWidthInches = 12.25, .externalRatio = 0.75};
   config.calibration = robotCalibration();
 
   // Starting gains (tune with the Tuner page, then copy the values here).

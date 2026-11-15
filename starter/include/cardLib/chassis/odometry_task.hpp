@@ -24,9 +24,10 @@ namespace cardLib {
 struct SensorTotals {
   std::array<double, MAX_VERTICAL_WHEELS> verticalWheelInches = {};
   double horizontalWheelInches = 0.0;
-  double leftDriveInches = 0.0;
-  double rightDriveInches = 0.0;
+  double leftDriveInches = 0.0;   // mean of the left modules (a tank's left side)
+  double rightDriveInches = 0.0;  // mean of the right modules
   double imuRotationDegrees = 0.0;
+  std::array<double, MAX_WHEEL_MODULES> driveWheelInches = {};  // each module, in drive order
 };
 
 // How many readings each sensor has had rejected or failed since start-up (SPEC section 4: a
@@ -81,22 +82,24 @@ class OdometryTask {
   SensorFrame buildSensorFrame(double dtSeconds);
   void readTrackingWheels(SensorFrame& frame, double dtSeconds);
   void readDrive(SensorFrame& frame, double dtSeconds);
+  void combineSides(SensorFrame& frame, const std::array<WheelDelta, MAX_WHEEL_MODULES>& deltas);
   void readImu(SensorFrame& frame);
   void readDistances(SensorFrame& frame);
   void publish(const RobotState& state, const SensorFrame& frame);
   SensorRejections rejectionCounts() const;
   std::optional<double> verticalWheelInches(std::size_t index);
   std::optional<double> horizontalWheelInches();
-  std::optional<double> driveInches(MotorGroup* group);
+  std::optional<double> moduleInches(std::size_t module);
+  bool moduleOnSide(std::size_t module, Side side) const;
 
   const ChassisConfig& m_config;
+  DriveConfig m_drive;  // resolved: always wheel modules
   PoseEstimator& m_estimator;
   TelemetryBuffer& m_telemetry;
   std::array<const TrackingWheelConfig*, MAX_VERTICAL_WHEELS> m_verticalWheels = {};
   std::array<PlausibilityCheck, MAX_VERTICAL_WHEELS> m_verticalChecks;
   PlausibilityCheck m_horizontalCheck;
-  PlausibilityCheck m_leftDriveCheck;
-  PlausibilityCheck m_rightDriveCheck;
+  std::array<PlausibilityCheck, MAX_WHEEL_MODULES> m_driveChecks;
   pros::MutexVar<OdometrySnapshot> m_shared;
   pros::Mutex m_resetMutex;
   bool m_resetPending = false;

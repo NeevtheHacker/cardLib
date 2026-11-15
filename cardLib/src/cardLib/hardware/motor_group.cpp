@@ -61,7 +61,7 @@ bool MotorGroup::initialize() {
     const bool unitsOk =
         pros::c::motor_set_encoder_units(port, pros::E_MOTOR_ENCODER_DEGREES) != PROS_ERR;
     const bool gearOk =
-        pros::c::motor_set_gearing(port, toGearset(m_motors[i].cartridge)) != PROS_ERR;
+        pros::c::motor_set_gearing(port, toGearset(effectiveCartridge(m_motors[i]))) != PROS_ERR;
     m_health[i].record(unitsOk && gearOk);
     allOk = allOk && unitsOk && gearOk;
   }

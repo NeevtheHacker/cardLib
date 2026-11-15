@@ -20,6 +20,7 @@ constexpr std::uint32_t IMU_DRIFT_CHECK_MS = 1000;
 
 Chassis::Chassis(const ChassisConfig& config, PoseEstimator* estimator)
     : m_config(config),
+      m_drive(resolveDrive(m_config)),
       m_defaultOdometry(makeArcOdometryConfig(m_config)),
       m_estimator(estimator != nullptr ? estimator : &m_defaultOdometry),
       m_odometry(m_config, *m_estimator, m_telemetry),
@@ -34,10 +35,13 @@ const StartupReport& Chassis::initialize() {
   m_report = {};
   if (!m_tasksStarted) {
     // Rebuilt here, not only in the constructor: the chassis may be a global built before
-    // the sensor configs it points to.
+    // the sensor configs and motor groups it points to.
     const Pose pose = m_defaultOdometry.state().pose;
     m_defaultOdometry = ArcOdometry(makeArcOdometryConfig(m_config));
     m_defaultOdometry.reset(pose);
+    m_drive = resolveDrive(m_config);
+    m_kinematics = makeDriveKinematics(m_drive);
+    m_motion.setDrive(m_drive, m_kinematics);
   }
   PortRegistry registry;
   registerDevices(registry);
@@ -79,13 +83,18 @@ bool Chassis::setCalibration(const Calibration& calibration) {
 }
 
 void Chassis::registerDevices(PortRegistry& registry) const {
-  const DriveConfig& drive = m_config.drive;
   const SensorConfig& sensors = m_config.sensors;
-  if (drive.left != nullptr) {
-    drive.left->registerPorts(registry, "left drive", Requirement::Required);
-  }
-  if (drive.right != nullptr) {
-    drive.right->registerPorts(registry, "right drive", Requirement::Required);
+  const bool tankShorthand = m_config.drive.moduleCount == 0;
+  for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
+    const MotorGroup* motors = m_drive.modules[i].motors;
+    if (motors == nullptr) {
+      continue;
+    }
+    const char* role = motors->role();
+    if (tankShorthand) {
+      role = motors == m_config.drive.left ? "left drive" : "right drive";
+    }
+    motors->registerPorts(registry, role, Requirement::Required);
   }
   const std::array<std::pair<const TrackingWheelConfig*, const char*>, 3> wheels{{
       {sensors.verticalWheel1, "vertical wheel 1"},
@@ -110,9 +119,9 @@ void Chassis::registerDevices(PortRegistry& registry) const {
 
 void Chassis::initializeDevices() {
   const SensorConfig& sensors = m_config.sensors;
-  for (MotorGroup* group : {m_config.drive.left, m_config.drive.right}) {
-    if (group != nullptr) {
-      group->initialize();
+  for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
+    if (m_drive.modules[i].motors != nullptr) {
+      m_drive.modules[i].motors->initialize();
     }
   }
   for (const TrackingWheelConfig* wheel :
@@ -279,7 +288,17 @@ void Chassis::arcade(double forwardStick, double turnStick) {
 }
 
 void Chassis::driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts) {
-  m_motion.drive({leftMillivolts, rightMillivolts});
+  m_motion.drive(
+      {.direct = {.leftMillivolts = leftMillivolts, .rightMillivolts = rightMillivolts}});
+}
+
+void Chassis::driveMillivolts(std::span<const std::int32_t> wheelMillivolts) {
+  DriverCommand command;
+  command.direct.wheelCount = m_drive.moduleCount;
+  for (std::size_t i = 0; i < m_drive.moduleCount && i < wheelMillivolts.size(); ++i) {
+    command.direct.wheels[i].millivolts = wheelMillivolts[i];
+  }
+  m_motion.drive(command);
 }
 
 void Chassis::setDriverBrake(BrakeMode mode) {

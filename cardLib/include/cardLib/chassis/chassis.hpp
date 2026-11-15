@@ -8,7 +8,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 
+#include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/interfaces/pose_estimator.hpp"
 #include "cardLib/algorithms/localization/arc_odometry.hpp"
 #include "cardLib/algorithms/motion/motion_options.hpp"
@@ -90,7 +92,10 @@ class Chassis {
   void tank(double leftStick, double rightStick);
   void arcade(double forwardStick, double turnStick);
   // Raw side voltages through the motion task, no curves. For test and calibration routines.
+  // Every left module gets the left value and every right module the right one.
   void driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts);
+  // Raw voltage per wheel module, in the drive's module order; missing entries get 0.
+  void driveMillivolts(std::span<const std::int32_t> wheelMillivolts);
   void setDriverBrake(BrakeMode mode);
   BrakeMode driverBrake() const { return m_driverBrake.load(); }
 
@@ -103,6 +108,9 @@ class Chassis {
 
   const StartupReport& startupReport() const { return m_report; }
   const ChassisConfig& config() const { return m_config; }
+  // The drive as wheel modules, and its kinematics (built in initialize()).
+  const DriveConfig& drive() const { return m_drive; }
+  const DriveKinematics& driveKinematics() const { return m_kinematics; }
   OdometrySnapshot odometrySnapshot() { return m_odometry.snapshot(); }
   MotionStatus motionStatus() { return m_motion.status(); }
   MotionHistory& motionHistory() { return m_history; }
@@ -118,6 +126,8 @@ class Chassis {
   ReadyState decideReadyState() const;
 
   ChassisConfig m_config;
+  DriveConfig m_drive;
+  DriveKinematics m_kinematics;
   ArcOdometry m_defaultOdometry;
   PoseEstimator* m_estimator;
   TelemetryBuffer m_telemetry;

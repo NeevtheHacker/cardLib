@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "cardLib/algorithms/control/drive_command.hpp"
+#include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/math/pose.hpp"
 #include "cardLib/algorithms/motion/motion_options.hpp"
 
@@ -21,10 +22,12 @@ struct MotionCommand {
   MotionOptions options = {};
 };
 
-// Driver control output, already curved and mixed.
+// Driver control output, already curved. Either speeds the motion task mixes through the drive's
+// kinematics (arcade, holonomic), or a ready command (tank sticks, raw test voltages).
 struct DriverCommand {
-  std::int32_t leftMillivolts = 0;
-  std::int32_t rightMillivolts = 0;
+  bool mixSpeeds = false;
+  DriveSpeeds speeds = {};
+  DriveCommand direct = {};
 };
 
 // Whether startup validation lets motions run (SPEC section 3).
