@@ -10,6 +10,7 @@ namespace cardLib {
 class Encoder;
 class Imu;
 class DistanceSensor;
+class GpsSensor;
 
 // Must match the cartridge physically installed; never inferred from a target RPM.
 enum class Cartridge { Red100, Green200, Blue600 };
@@ -51,6 +52,19 @@ struct DistanceSensorConfig {
   double headingDegrees = 0.0;  // which way it points, relative to the robot's front
   double gain = 1.0;
   double offsetInches = 0.0;
+};
+
+// The GPS sensor, where it sits on the robot, and how its field frame maps onto the team's
+// (the team's frame = the GPS frame turned clockwise by fieldRotationDegrees, then shifted).
+// Left out until its mount is known (SPEC 20.14, 21.3).
+struct GpsConfig {
+  GpsSensor* sensor = nullptr;
+  double xInches = 0.0;         // right of the robot's center
+  double yInches = 0.0;         // forward of it
+  double headingDegrees = 0.0;  // the way it faces; 180 for the usual rear mount
+  double fieldXOffsetInches = 0.0;
+  double fieldYOffsetInches = 0.0;
+  double fieldRotationDegrees = 0.0;
 };
 
 // Orientation is required; position is optional metadata (heading doesn't depend on it).

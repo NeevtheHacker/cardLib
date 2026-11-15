@@ -51,6 +51,8 @@ struct OdometrySnapshot {
   bool rightDriveFaulted = false;
   bool driveMotorMissing = false;  // a drive motor stopped answering: motions report SensorFault
   std::array<DistanceReading, MAX_DISTANCE_SENSORS> distances = {};
+  GpsReading gps = {};      // the robot's center from the GPS, refreshed at 10 Hz
+  bool gpsFaulted = false;  // three failed GPS reads in a row
   SensorTotals totals = {};
   SensorRejections rejections = {};
   std::uint32_t loopOverruns = 0;
@@ -85,6 +87,7 @@ class OdometryTask {
   void combineSides(SensorFrame& frame, const std::array<WheelDelta, MAX_WHEEL_MODULES>& deltas);
   void readImu(SensorFrame& frame);
   void readDistances(SensorFrame& frame);
+  void readGps();
   void publish(const RobotState& state, const SensorFrame& frame);
   SensorRejections rejectionCounts() const;
   std::optional<double> verticalWheelInches(std::size_t index);
@@ -111,6 +114,8 @@ class OdometryTask {
   bool m_imuFaulted = false;
   std::uint32_t m_loopOverruns = 0;
   std::uint32_t m_loopCount = 0;
+  std::uint32_t m_gpsLoop = 0;
+  GpsReading m_gps = {};
   pros::task_t m_task = nullptr;
 };
 

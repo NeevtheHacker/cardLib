@@ -15,6 +15,7 @@
 #include "cardLib/algorithms/control/pid_controller.hpp"
 #include "cardLib/algorithms/control/slew_limiter.hpp"
 #include "cardLib/algorithms/localization/arc_odometry.hpp"
+#include "cardLib/algorithms/localization/pose_reset.hpp"
 #include "cardLib/algorithms/localization/sensor_frame.hpp"
 #include "cardLib/hardware/hardware_config.hpp"
 #include "cardLib/hardware/motor_group.hpp"
@@ -49,6 +50,7 @@ struct SensorConfig {
   const TrackingWheelConfig* horizontalWheel = nullptr;
   const ImuConfig* imu = nullptr;
   std::array<const DistanceSensorConfig*, MAX_DISTANCE_SENSORS> distanceSensors = {};
+  const GpsConfig* gps = nullptr;
 };
 
 // Physical facts. Change when the robot is rebuilt. The drive fields describe the tank
@@ -120,6 +122,7 @@ struct ChassisConfig {
   Calibration calibration = {};
   Gains gains = {};
   Limits limits = {};
+  FieldWalls field = {};  // where resetFromWall() finds each wall (SPEC 21.2)
 };
 
 // The default estimator's settings, from the geometry, sensor configs and calibration.

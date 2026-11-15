@@ -8,6 +8,7 @@
 
 #include "cardLib/algorithms/control/field_centric.hpp"
 #include "cardLib/hardware/distance_sensor.hpp"
+#include "cardLib/hardware/gps_sensor.hpp"
 #include "cardLib/hardware/imu.hpp"
 #include "pros/misc.h"
 
@@ -116,6 +117,9 @@ void Chassis::registerDevices(PortRegistry& registry) const {
                    Requirement::Optional);
     }
   }
+  if (sensors.gps != nullptr && sensors.gps->sensor != nullptr) {
+    registry.add(sensors.gps->sensor->port(), DeviceKind::Gps, "GPS", Requirement::Optional);
+  }
 }
 
 void Chassis::initializeDevices() {
@@ -211,6 +215,59 @@ Pose Chassis::getPose() { return m_odometry.snapshot().state.pose; }
 RobotState Chassis::getState() { return m_odometry.snapshot().state; }
 
 OdometryHealth Chassis::odomHealth() { return m_odometry.snapshot().state.health; }
+
+ResetResult Chassis::resetFromWall(std::size_t sensorIndex, Wall wall,
+                                   const WallResetOptions& options) {
+  if (!m_tasksStarted) {
+    return ResetResult::NotRunning;
+  }
+  const DistanceSensorConfig* sensor =
+      sensorIndex < MAX_DISTANCE_SENSORS ? m_config.sensors.distanceSensors[sensorIndex] : nullptr;
+  if (sensor == nullptr || sensor->sensor == nullptr) {
+    return ResetResult::NoSensor;
+  }
+  const OdometrySnapshot odometry = m_odometry.snapshot();
+  const PoseResetDecision decision =
+      wallReset(odometry.state, {sensor->xInches, sensor->yInches, sensor->headingDegrees},
+                odometry.distances[sensorIndex], wall, m_config.field, options);
+  const ResetResult result = applyReset(decision);
+  if (result == ResetResult::Applied) {
+    const bool alongX = wall == Wall::Left || wall == Wall::Right;
+    m_telemetry.push({pros::millis(), TelemetryChannel::WallReset,
+                      alongX ? decision.pose.xInches : decision.pose.yInches,
+                      alongX ? odometry.state.pose.xInches : odometry.state.pose.yInches,
+                      alongX ? 0.0 : 1.0});
+  }
+  return result;
+}
+
+ResetResult Chassis::resetFromGps(const GpsResetOptions& options) {
+  if (!m_tasksStarted) {
+    return ResetResult::NotRunning;
+  }
+  if (m_config.sensors.gps == nullptr || m_config.sensors.gps->sensor == nullptr) {
+    return ResetResult::NoSensor;
+  }
+  const OdometrySnapshot odometry = m_odometry.snapshot();
+  const PoseResetDecision decision = gpsReset(odometry.state, odometry.gps, options);
+  const ResetResult result = applyReset(decision);
+  if (result == ResetResult::Applied) {
+    const Pose& before = odometry.state.pose;
+    m_telemetry.push({pros::millis(), TelemetryChannel::GpsReset,
+                      decision.pose.xInches - before.xInches,
+                      decision.pose.yInches - before.yInches,
+                      decision.pose.headingDegrees - before.headingDegrees});
+  }
+  return result;
+}
+
+// Hands an accepted correction to the odometry task, the only writer of the pose.
+ResetResult Chassis::applyReset(const PoseResetDecision& decision) {
+  if (decision.result != ResetResult::Applied) {
+    return decision.result;
+  }
+  return m_odometry.requestReset(decision.pose) ? ResetResult::Applied : ResetResult::NotRunning;
+}
 
 // --- motions ------------------------------------------------------------------------------------
 

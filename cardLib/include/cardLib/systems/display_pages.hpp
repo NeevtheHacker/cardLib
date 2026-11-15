@@ -11,6 +11,7 @@
 #include "cardLib/chassis/chassis_config.hpp"
 #include "cardLib/chassis/motion_task.hpp"
 #include "cardLib/chassis/odometry_task.hpp"
+#include "cardLib/chassis/sensor_status.hpp"
 #include "cardLib/systems/black_box.hpp"
 #include "cardLib/systems/test_modes.hpp"
 
@@ -31,8 +32,8 @@ struct AutonEntry {
 
 enum class Alliance { Red, Blue };
 
-enum class DisplayPage { Auton, AutonOptions, Pose, Diagnostics, Tests, Tuner, User };
-constexpr std::size_t DISPLAY_PAGE_COUNT = 7;
+enum class DisplayPage { Auton, AutonOptions, Pose, Diagnostics, Sensors, Tests, Tuner, User };
+constexpr std::size_t DISPLAY_PAGE_COUNT = 8;
 
 // A line set with Display::set(): a label and a number, formatted only by the display task.
 struct UserLine {
@@ -47,6 +48,7 @@ struct DisplayData {
   MotionStatus motion = {};
   StartupReport startup = {};
   bool fieldCentricIgnored = false;
+  SensorStatusList sensors = {};
   const char* calibrationSource = "";
   Gains gains = {};
   std::size_t tunerField = 0;

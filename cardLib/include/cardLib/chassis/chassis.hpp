@@ -70,6 +70,16 @@ class Chassis {
   RobotState getState();
   OdometryHealth odomHealth();
 
+  // SPEC 21.2. Sets one field coordinate from distance sensor sensorIndex (its place in
+  // SensorConfig::distanceSensors) facing a wall. Only when the robot is stopped, the sensor is
+  // within about 15 degrees of square, the reading is in range and the change is under the
+  // limit; anything but Applied leaves the pose as it was. Prints one terminal line if applied.
+  ResetResult resetFromWall(std::size_t sensorIndex, Wall wall,
+                            const WallResetOptions& options = {});
+  // SPEC 21.3. Sets x and y, and the heading if options.resetHeading, from the GPS. Only when
+  // the robot is stopped and the GPS error estimate is under the limit.
+  ResetResult resetFromGps(const GpsResetOptions& options = {});
+
   // Motions. Each blocks until done and returns its result, unless options.async is set, in
   // which case it returns MotionResult::Started at once.
   MotionResult move(double distanceInches, const MotionOptions& options = {});
@@ -141,6 +151,7 @@ class Chassis {
   bool supports(const MotionCommand& command) const;
   MotionResult refuseUnsupported(const MotionCommand& command);
   bool fieldHeadingAvailable(const OdometrySnapshot& odometry) const;
+  ResetResult applyReset(const PoseResetDecision& decision);
   void registerDevices(PortRegistry& registry) const;
   void initializeDevices();
   void checkHeadingSource();

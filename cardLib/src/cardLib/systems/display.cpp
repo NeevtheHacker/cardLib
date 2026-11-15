@@ -159,6 +159,7 @@ void Display::pageAction(bool left) {
       stepTuner(!left);
       break;
     case DisplayPage::Pose:
+    case DisplayPage::Sensors:
     case DisplayPage::User:
       break;
   }
@@ -192,6 +193,7 @@ DisplayData Display::gatherData() {
   data.motion = m_chassis.motionStatus();
   data.startup = m_chassis.startupReport();
   data.fieldCentricIgnored = m_chassis.fieldCentricIgnored();
+  data.sensors = sensorStatus(m_chassis.config(), data.startup, data.odometry);
   data.calibrationSource = m_chassis.config().calibration.source;
   data.gains = m_chassis.gains();
   data.tunerField = m_tunerField;

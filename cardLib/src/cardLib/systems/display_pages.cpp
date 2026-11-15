@@ -164,6 +164,25 @@ void renderDiagnostics(const DisplayData& data, DisplayScreen& screen) {
   setLine(screen[lastFree], "R: save black box  %s", saveName(data.blackBox));
 }
 
+// Two sensors to a line: every configured sensor and its status (SPEC 21.4).
+void renderSensors(const DisplayData& data, DisplayScreen& screen) {
+  const SensorStatusList& sensors = data.sensors;
+  if (sensors.count == 0) {
+    setLine(screen[0], "no sensors configured");
+    return;
+  }
+  for (std::size_t line = 0; line < DISPLAY_LINES && 2 * line < sensors.count; ++line) {
+    const SensorStatusLine& first = sensors.lines[2 * line];
+    if (2 * line + 1 < sensors.count) {
+      const SensorStatusLine& second = sensors.lines[2 * line + 1];
+      setLine(screen[line], "%-7s %-8s %-7s %-8s", first.name, sensorStatusName(first.status),
+              second.name, sensorStatusName(second.status));
+    } else {
+      setLine(screen[line], "%-7s %-8s", first.name, sensorStatusName(first.status));
+    }
+  }
+}
+
 void renderPortCheck(const PortCheckReport& report, DisplayScreen& screen) {
   if (!report.ran) {
     setLine(screen[2], "wheels OFF the ground, then R");
@@ -264,6 +283,9 @@ void renderPage(DisplayPage page, const DisplayData& data, DisplayScreen& screen
       break;
     case DisplayPage::Diagnostics:
       renderDiagnostics(data, screen);
+      break;
+    case DisplayPage::Sensors:
+      renderSensors(data, screen);
       break;
     case DisplayPage::Tests:
       renderTests(data, screen);

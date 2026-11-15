@@ -13,7 +13,10 @@
 
 namespace cardLib {
 
-enum class TelemetryChannel : std::uint8_t { Motion = 1, Pose = 2 };
+// WallReset: target = corrected coordinate, measured = previous, output = axis (0 = x, 1 = y).
+// GpsReset: target = change in x, measured = change in y, output = change in heading.
+// Resets are rare and always printed, as one readable line each (SPEC 21.4).
+enum class TelemetryChannel : std::uint8_t { Motion = 1, Pose = 2, WallReset = 3, GpsReset = 4 };
 
 struct TelemetryRecord {
   std::uint32_t timeMs = 0;

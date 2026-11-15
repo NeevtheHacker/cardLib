@@ -72,6 +72,7 @@ enum class DeviceKind {
   Imu,
   Rotation,
   Distance,
+  Gps,
   AdiEncoder,
   AdiEncoderBottom,
   AdiDigitalOut,

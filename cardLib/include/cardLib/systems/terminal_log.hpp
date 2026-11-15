@@ -26,6 +26,7 @@ class TerminalLog {
   static void taskEntry(void* self);
   void run();
   void flush();
+  bool printResetLine(const TelemetryRecord& record);
 
   TelemetryBuffer& m_telemetry;
   bool m_headerPrinted = false;

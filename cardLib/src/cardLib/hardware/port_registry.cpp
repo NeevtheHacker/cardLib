@@ -22,6 +22,8 @@ pros::c::v5_device_e_t expectedSmartDevice(DeviceKind kind) {
       return pros::c::E_DEVICE_ROTATION;
     case DeviceKind::Distance:
       return pros::c::E_DEVICE_DISTANCE;
+    case DeviceKind::Gps:
+      return pros::c::E_DEVICE_GPS;
     case DeviceKind::AdiEncoder:
     case DeviceKind::AdiEncoderBottom:
     case DeviceKind::AdiDigitalOut:

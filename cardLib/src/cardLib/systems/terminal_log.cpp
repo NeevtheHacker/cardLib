@@ -27,6 +27,23 @@ void TerminalLog::run() {
   }
 }
 
+// One readable line per pose reset, e.g. "# 1234 ms wall reset: x -57.00 -> -56.00 (+1.00 in)".
+bool TerminalLog::printResetLine(const TelemetryRecord& record) {
+  const auto timeMs = static_cast<unsigned long>(record.timeMs);
+  if (record.channel == TelemetryChannel::WallReset) {
+    std::printf("# %lu ms wall reset: %c %.2f -> %.2f (%+.2f in)\n", timeMs,
+                record.output == 0.0 ? 'x' : 'y', record.measured, record.target,
+                record.target - record.measured);
+    return true;
+  }
+  if (record.channel == TelemetryChannel::GpsReset) {
+    std::printf("# %lu ms gps reset: x %+.2f in, y %+.2f in, heading %+.2f deg\n", timeMs,
+                record.target, record.measured, record.output);
+    return true;
+  }
+  return false;
+}
+
 void TerminalLog::flush() {
   std::array<TelemetryRecord, MAX_LINES_PER_FLUSH> batch = {};
   const std::size_t count = m_telemetry.drain(batch);
@@ -36,6 +53,9 @@ void TerminalLog::flush() {
   }
   for (std::size_t i = 0; i < count; ++i) {
     const TelemetryRecord& record = batch[i];
+    if (printResetLine(record)) {
+      continue;
+    }
     std::printf("%lu,%u,%.3f,%.3f,%.3f\n", static_cast<unsigned long>(record.timeMs),
                 static_cast<unsigned>(record.channel), record.target, record.measured,
                 record.output);

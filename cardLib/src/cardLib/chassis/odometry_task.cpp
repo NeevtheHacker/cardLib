@@ -7,6 +7,7 @@
 #include "cardLib/algorithms/localization/wheel_distance.hpp"
 #include "cardLib/algorithms/math/loop_timing.hpp"
 #include "cardLib/hardware/distance_sensor.hpp"
+#include "cardLib/hardware/gps_sensor.hpp"
 #include "cardLib/hardware/imu.hpp"
 
 namespace cardLib {
@@ -16,6 +17,7 @@ constexpr std::uint32_t POSE_TELEMETRY_EVERY_LOOPS = 10;  // 10 Hz
 constexpr double MICROSECONDS_PER_SECOND = 1e6;
 constexpr std::uint32_t RESET_POLL_MS = 2;
 constexpr std::uint32_t IMU_FAILURES_TO_FAULT = 3;
+constexpr std::uint32_t GPS_EVERY_LOOPS = 10;  // 10 Hz: resets only ever need a recent fix
 
 std::array<PlausibilityCheck, MAX_WHEEL_MODULES> makeDriveChecks(double maxSpeed) {
   return {PlausibilityCheck(maxSpeed), PlausibilityCheck(maxSpeed), PlausibilityCheck(maxSpeed),
@@ -133,6 +135,7 @@ SensorFrame OdometryTask::buildSensorFrame(double dtSeconds) {
   readDrive(frame, dtSeconds);
   readImu(frame);
   readDistances(frame);
+  readGps();
   return frame;
 }
 
@@ -246,6 +249,31 @@ void OdometryTask::readDistances(SensorFrame& frame) {
   }
 }
 
+// The GPS is read here so no other task touches a sensor this task owns. It feeds only the
+// on-request reset (SPEC 21.3), so 10 Hz is plenty.
+void OdometryTask::readGps() {
+  const GpsConfig* config = m_config.sensors.gps;
+  if (config == nullptr || config->sensor == nullptr || m_gpsLoop++ % GPS_EVERY_LOOPS != 0) {
+    return;
+  }
+  const std::optional<GpsSample> sample = config->sensor->read();
+  if (!sample.has_value()) {
+    m_gps.valid = false;
+    return;
+  }
+  const GpsMount mount{config->xInches,
+                       config->yInches,
+                       config->headingDegrees,
+                       config->fieldXOffsetInches,
+                       config->fieldYOffsetInches,
+                       config->fieldRotationDegrees};
+  m_gps = {.robotPose = robotPoseFromGps({sample->xInches, sample->yInches,
+                                          sample->headingDegrees},
+                                         mount),
+           .errorInches = sample->errorInches,
+           .valid = true};
+}
+
 std::optional<double> OdometryTask::verticalWheelInches(std::size_t index) {
   const TrackingWheelConfig* wheel = m_verticalWheels[index];
   if (wheel == nullptr || wheel->sensor == nullptr) {
@@ -313,6 +341,10 @@ void OdometryTask::publish(const RobotState& state, const SensorFrame& frame) {
     shared->rightDriveFaulted = rightFaulted;
     shared->driveMotorMissing = motorMissing;
     shared->distances = frame.distances;
+    shared->gps = m_gps;
+    const GpsConfig* gps = m_config.sensors.gps;
+    shared->gpsFaulted =
+        gps != nullptr && gps->sensor != nullptr && gps->sensor->health().faulted();
     shared->totals = m_totals;
     shared->loopOverruns = m_loopOverruns;
   }
