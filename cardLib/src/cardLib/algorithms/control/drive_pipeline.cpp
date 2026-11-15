@@ -60,13 +60,17 @@ DriveCommand toDriveCommand(const WheelSpeeds& wheels, const DriveKinematics& ki
                             ? WheelCommand{0, SideMode::Held}
                             : WheelCommand{speedToMillivolts(wheels.speeds[i]), SideMode::Driven};
   }
+  summarizeSides(command, kinematics);
+  return command;
+}
+
+void summarizeSides(DriveCommand& command, const DriveKinematics& kinematics) {
   const SideSummary left = summarizeSide(command, kinematics, true);
   const SideSummary right = summarizeSide(command, kinematics, false);
   command.leftMillivolts = left.millivolts;
   command.leftMode = left.mode;
   command.rightMillivolts = right.millivolts;
   command.rightMode = right.mode;
-  return command;
 }
 
 DrivePipeline::DrivePipeline(const SlewRates& linearRates, const SlewRates& angularRates)

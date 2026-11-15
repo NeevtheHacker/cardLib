@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "cardLib/algorithms/control/drive_pipeline.hpp"
 #include "cardLib/algorithms/control/field_centric.hpp"
 #include "cardLib/hardware/distance_sensor.hpp"
 #include "cardLib/hardware/gps_sensor.hpp"
@@ -428,6 +429,7 @@ void Chassis::driveMillivolts(std::span<const std::int32_t> wheelMillivolts) {
   for (std::size_t i = 0; i < m_drive.moduleCount && i < wheelMillivolts.size(); ++i) {
     command.direct.wheels[i].millivolts = wheelMillivolts[i];
   }
+  summarizeSides(command.direct, m_kinematics);
   m_motion.drive(command);
 }
 

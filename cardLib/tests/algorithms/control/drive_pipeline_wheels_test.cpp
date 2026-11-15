@@ -3,6 +3,7 @@
 //      slew, generalized pivots, and the side summary the screen shows.
 // Owns: tests for the per-wheel parts of algorithms/control/drive_pipeline.
 #include <cmath>
+#include <cstdint>
 #include <numbers>
 
 #include "cardLib/algorithms/control/drive_kinematics.hpp"
@@ -130,4 +131,27 @@ TEST_CASE("toDriveCommand turns wheel speeds into millivolts and held modes") {
   CHECK(command.wheels[1].mode == SideMode::Held);
   CHECK(command.leftMillivolts == 6000);
   CHECK(command.rightMode == SideMode::Held);
+}
+
+TEST_CASE("summarizeSides fills the side summary of a raw per-wheel command") {
+  DriveCommand command;
+  command.wheelCount = 6;
+  const std::int32_t raw[6] = {3000, -1000, 2000, 0, 4000, 6000};
+  for (std::size_t i = 0; i < 6; ++i) {
+    command.wheels[i].millivolts = raw[i];
+  }
+  summarizeSides(command, ASTERISK);
+  CHECK(command.leftMillivolts == 3000);   // wheels 0, 2, 4: (3000 + 2000 + 4000) / 3
+  CHECK(command.rightMillivolts == 1667);  // wheels 1, 3, 5: (-1000 + 0 + 6000) / 3, rounded
+  CHECK(command.leftMode == SideMode::Driven);
+  CHECK(command.rightMode == SideMode::Driven);
+}
+
+TEST_CASE("summarizeSides: one wheel alone shows on its own side only") {
+  DriveCommand command;
+  command.wheelCount = 6;
+  command.wheels[3].millivolts = 6000;
+  summarizeSides(command, ASTERISK);
+  CHECK(command.leftMillivolts == 0);
+  CHECK(command.rightMillivolts == 2000);
 }

@@ -33,6 +33,11 @@ double limitSpeed(const ChannelRequest& request);
 // the wheels left (x < 0) and right (x > 0) of center.
 DriveCommand toDriveCommand(const WheelSpeeds& wheels, const DriveKinematics& kinematics);
 
+// Sets a per-wheel command's side fields: the rounded mean of the wheels left (x < 0) and right
+// (x > 0) of center, Held only if every wheel on that side is held. A side with no wheels gets
+// 0. For commands built outside the pipeline, e.g. raw per-wheel test voltages.
+void summarizeSides(DriveCommand& command, const DriveKinematics& kinematics);
+
 class DrivePipeline {
  public:
   // A unit tank (UNIT_TANK_KINEMATICS), with the strafe channel slewed like linear. The real
