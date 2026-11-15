@@ -42,7 +42,7 @@ MINOR, a fix bumps PATCH. The Makefile `VERSION`, the release tag and this file 
   the effective track width is skipped there.
 - Startup reports a wheel module with no motor group, and a config with no drive, as faults.
 - `GpsSensor`, `resetFromWall()` and `resetFromGps()`, and a Sensors page showing every sensor as
-  OK, Suspect, Faulted or Missing.
+  OK, Suspect, Faulted, Wrong or Missing.
 - `LICENSE`, `README.md`, this changelog, `.gitignore` and fuller `.gitattributes`.
 - The documentation site config (`mkdocs.yml`, GitHub Pages workflow), an "At a glance" page
   listing every function a team calls, a "Checking a new robot" page, and `tools/check_docs.py`,

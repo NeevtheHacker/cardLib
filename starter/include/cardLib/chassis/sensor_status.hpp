@@ -1,5 +1,5 @@
 // sensor_status.hpp
-// Why: one OK / Suspect / Faulted / Missing word per configured sensor, for the Sensors page
+// Why: one OK / Suspect / Faulted / Wrong / Missing word per configured sensor, for the Sensors page
 //      (SPEC 21.4), decided here so the screen code holds no robot logic.
 // Owns: SensorStatus and sensorStatus(). No state.
 #pragma once
@@ -14,8 +14,10 @@
 namespace cardLib {
 
 // Ok: working. Suspect: answering, but this loop's reading is doubtful or absent. Faulted:
-// stopped answering mid-run (three bad reads in a row). Missing: not found at startup.
-enum class SensorStatus { Ok, Suspect, Faulted, Missing };
+// stopped answering mid-run (three bad reads in a row). Wrong: startup found the port shared,
+// out of range, holding another kind of device, or an ADI port in the wrong mode. Missing:
+// nothing found at startup (or a wheel module with no motors). Missing wins over Wrong.
+enum class SensorStatus { Ok, Suspect, Faulted, Wrong, Missing };
 
 struct SensorStatusLine {
   const char* name = "";

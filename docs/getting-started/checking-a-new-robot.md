@@ -10,7 +10,7 @@ Write down for every run: the date, battery %, the result the call returned and 
 - Brain screen, **Diagnostics** page: `Startup: Ready`, and no port lines, "no drive" or "modules with no motors".
 - **Sensors** page: every configured sensor shows OK. A distance sensor with nothing in range shows Suspect; that's fine.
 
-If something is listed, fix the port or the config first. See [Sensors](../tutorials/3-sensors.md#the-sensors-page).
+If something is listed, or a sensor shows Wrong or Missing, fix the port or the config first. See [Sensors](../tutorials/3-sensors.md#the-sensors-page).
 
 ## 1. Direction check
 

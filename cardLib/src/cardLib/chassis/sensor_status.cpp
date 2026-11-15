@@ -18,21 +18,35 @@ constexpr const char* DISTANCE_NAMES[MAX_DISTANCE_SENSORS] = {"dist 1", "dist 2"
 // A GPS fix worse than this is shown as Suspect (the reset's default limit).
 constexpr double GPS_SUSPECT_ERROR_INCHES = 1.0;
 
-// Startup found a problem with this role's device, or with this port.
-bool missingAtStartup(const StartupReport& startup, const char* role, int port = -1) {
+// What startup found for this role's device, or for this port. Missing wins over Wrong.
+enum class StartupProblem { None, Wrong, Missing };
+
+StartupProblem startupProblem(const StartupReport& startup, const char* role, int port = -1) {
+  StartupProblem worst = StartupProblem::None;
   for (std::size_t i = 0; i < startup.portIssueCount; ++i) {
     const PortIssue& issue = startup.portIssues[i];
     const bool roleMatches = role != nullptr && std::strcmp(issue.role, role) == 0;
-    if (roleMatches || static_cast<int>(issue.port) == port) {
-      return true;
+    if (!roleMatches && static_cast<int>(issue.port) != port) {
+      continue;
     }
+    if (issue.problem == PortProblem::Missing) {
+      return StartupProblem::Missing;
+    }
+    worst = StartupProblem::Wrong;
   }
-  return false;
+  return worst;
 }
 
-SensorStatus statusOf(bool missing, bool faulted, bool suspect) {
-  if (missing) {
+StartupProblem worse(StartupProblem a, StartupProblem b) {
+  return static_cast<int>(a) > static_cast<int>(b) ? a : b;
+}
+
+SensorStatus statusOf(StartupProblem problem, bool faulted, bool suspect) {
+  if (problem == StartupProblem::Missing) {
     return SensorStatus::Missing;
+  }
+  if (problem == StartupProblem::Wrong) {
+    return SensorStatus::Wrong;
   }
   if (faulted) {
     return SensorStatus::Faulted;
@@ -59,12 +73,12 @@ void addTrackingWheels(SensorStatusList& list, const SensorConfig& sensors,
       continue;
     }
     add(list, NAMES[i],
-        statusOf(missingAtStartup(startup, ROLES[i]), odometry.verticalWheelFaulted[index], slip));
+        statusOf(startupProblem(startup, ROLES[i]), odometry.verticalWheelFaulted[index], slip));
     ++index;
   }
   if (sensors.horizontalWheel != nullptr) {
     add(list, "horiz",
-        statusOf(missingAtStartup(startup, "horizontal wheel"), odometry.horizontalWheelFaulted,
+        statusOf(startupProblem(startup, "horizontal wheel"), odometry.horizontalWheelFaulted,
                  false));
   }
 }
@@ -75,16 +89,17 @@ void addDrive(SensorStatusList& list, const ChassisConfig& config, const Startup
   if (drive.moduleCount == 0) {
     return;
   }
-  bool missing = startup.modulesWithoutMotors > 0;
+  StartupProblem problem =
+      startup.modulesWithoutMotors > 0 ? StartupProblem::Missing : StartupProblem::None;
   for (std::size_t i = 0; i < drive.moduleCount; ++i) {
     const MotorGroup* motors = drive.modules[i].motors;
     for (std::size_t m = 0; motors != nullptr && m < motors->size(); ++m) {
-      missing = missing || missingAtStartup(startup, nullptr, motors->motor(m).port);
+      problem = worse(problem, startupProblem(startup, nullptr, motors->motor(m).port));
     }
   }
   const bool encoderFault = odometry.leftDriveFaulted || odometry.rightDriveFaulted ||
                             odometry.state.driveSlipSuspect;
-  add(list, "drive", statusOf(missing, odometry.driveMotorMissing, encoderFault));
+  add(list, "drive", statusOf(problem, odometry.driveMotorMissing, encoderFault));
 }
 
 void addFieldSensors(SensorStatusList& list, const SensorConfig& sensors,
@@ -95,13 +110,13 @@ void addFieldSensors(SensorStatusList& list, const SensorConfig& sensors,
       continue;
     }
     add(list, DISTANCE_NAMES[i],
-        statusOf(missingAtStartup(startup, nullptr, distance->sensor->port()), false,
+        statusOf(startupProblem(startup, nullptr, distance->sensor->port()), false,
                  !odometry.distances[i].valid));
   }
   if (sensors.gps != nullptr && sensors.gps->sensor != nullptr) {
     const bool poorFix = !odometry.gps.valid || odometry.gps.errorInches > GPS_SUSPECT_ERROR_INCHES;
     add(list, "GPS",
-        statusOf(missingAtStartup(startup, nullptr, sensors.gps->sensor->port()),
+        statusOf(startupProblem(startup, nullptr, sensors.gps->sensor->port()),
                  odometry.gpsFaulted, poorFix));
   }
 }
@@ -115,7 +130,7 @@ SensorStatusList sensorStatus(const ChassisConfig& config, const StartupReport& 
   if (sensors.imu != nullptr && sensors.imu->sensor != nullptr) {
     const bool imuDoubtful = !odometry.imuAnswering || startup.imuCalibrationFailed ||
                              startup.imuDriftTooHigh || startup.imuOrientationMismatch;
-    add(list, "IMU", statusOf(missingAtStartup(startup, "IMU"), odometry.imuFaulted, imuDoubtful));
+    add(list, "IMU", statusOf(startupProblem(startup, "IMU"), odometry.imuFaulted, imuDoubtful));
   }
   addTrackingWheels(list, sensors, startup, odometry);
   addDrive(list, config, startup, odometry);
@@ -131,6 +146,8 @@ const char* sensorStatusName(SensorStatus status) {
       return "Suspect";
     case SensorStatus::Faulted:
       return "Faulted";
+    case SensorStatus::Wrong:
+      return "Wrong";
     case SensorStatus::Missing:
       return "Missing";
   }

@@ -54,7 +54,7 @@ explicit CalibrationRoutines(Chassis& chassis);
 
 ## Brain screen pages
 
-Auton, Auton options, Pose, Diagnostics, **Sensors**, Tests, Tuner and User. The Sensors page shows every configured sensor as OK, Suspect, Faulted or Missing. Diagnostics lists startup problems first: missing ports, "no drive", "modules with no motors", no heading source, IMU problems, and "field-centric ignored: tank drive".
+Auton, Auton options, Pose, Diagnostics, **Sensors**, Tests, Tuner and User. The Sensors page shows every configured sensor as OK, Suspect, Faulted, Wrong (duplicate or invalid port, wrong device, wrong ADI mode) or Missing (nothing found). Diagnostics lists startup problems first: missing ports, "no drive", "modules with no motors", no heading source, IMU problems, and "field-centric ignored: tank drive".
 
 ## CalibrationFile
 

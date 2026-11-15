@@ -69,6 +69,41 @@ TEST_CASE("a port problem at startup shows as Missing") {
   CHECK(statusOf(list, "GPS") == SensorStatus::Ok);
 }
 
+TEST_CASE("a duplicate port, wrong device, wrong ADI mode or bad port shows as Wrong") {
+  fake::reset();
+  fake::XDriveRobot robot;
+  StartupReport startup;
+  startup.portIssues[0] = {fake::XDriveRobot::DISTANCE_PORT, DeviceKind::Distance,
+                           "distance sensor", Requirement::Optional, PortProblem::WrongDevice};
+  startup.portIssues[1] = {fake::XDriveRobot::BACK_LEFT, DeviceKind::Motor, "back left",
+                           Requirement::Required, PortProblem::DuplicatePort};
+  startup.portIssues[2] = {fake::XDriveRobot::HORIZONTAL_PORT, DeviceKind::Rotation,
+                           "horizontal wheel", Requirement::Required, PortProblem::WrongAdiMode};
+  startup.portIssues[3] = {fake::XDriveRobot::GPS_PORT, DeviceKind::Gps, "GPS",
+                           Requirement::Optional, PortProblem::InvalidPort};
+  startup.portIssueCount = 4;
+  const SensorStatusList list = sensorStatus(robot.config(), startup, healthySnapshot());
+  CHECK(statusOf(list, "dist 1") == SensorStatus::Wrong);
+  CHECK(statusOf(list, "drive") == SensorStatus::Wrong);
+  CHECK(statusOf(list, "horiz") == SensorStatus::Wrong);
+  CHECK(statusOf(list, "GPS") == SensorStatus::Wrong);
+  CHECK(statusOf(list, "IMU") == SensorStatus::Ok);
+  CHECK(std::strcmp(sensorStatusName(SensorStatus::Wrong), "Wrong") == 0);
+}
+
+TEST_CASE("Missing wins over Wrong when one sensor has both problems") {
+  fake::reset();
+  fake::XDriveRobot robot;
+  StartupReport startup;
+  startup.portIssues[0] = {fake::XDriveRobot::FRONT_LEFT, DeviceKind::Motor, "front left",
+                           Requirement::Required, PortProblem::DuplicatePort};
+  startup.portIssues[1] = {fake::XDriveRobot::FRONT_RIGHT, DeviceKind::Motor, "front right",
+                           Requirement::Required, PortProblem::Missing};
+  startup.portIssueCount = 2;
+  const SensorStatusList list = sensorStatus(robot.config(), startup, healthySnapshot());
+  CHECK(statusOf(list, "drive") == SensorStatus::Missing);
+}
+
 TEST_CASE("faults mid-run show as Faulted, doubtful readings as Suspect") {
   fake::reset();
   fake::XDriveRobot robot;

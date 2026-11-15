@@ -93,7 +93,7 @@ It only applies when the robot is stopped and the GPS error estimate is under 1 
 
 ## The Sensors page
 
-The brain's Sensors page lists every configured sensor as **OK**, **Suspect** (answering, but this reading is doubtful: no wall in range, a poor GPS fix, slipping drive wheels), **Faulted** (stopped answering mid-run) or **Missing** (not found at startup).
+The brain's Sensors page lists every configured sensor as **OK**, **Suspect** (answering, but this reading is doubtful: no wall in range, a poor GPS fix, slipping drive wheels), **Faulted** (stopped answering mid-run), **Wrong** (found at startup, but its port is shared with another device, out of range, holds a different kind of device, or is an ADI port in the wrong mode) or **Missing** (nothing found at startup). Diagnostics names the port and the problem.
 
 ## When a sensor fails
 
