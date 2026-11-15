@@ -39,7 +39,10 @@ DriveConfig resolveDrive(const ChassisConfig& config) {
     return config.drive;
   }
   DriveConfig drive = config.drive;
-  const Geometry& geometry = config.geometry;
+  if (!config.geometry.has_value()) {
+    return drive;
+  }
+  const Geometry& geometry = *config.geometry;
   const double halfTrack = geometry.trackWidthInches / 2.0;
   if (drive.left != nullptr) {
     drive.modules[drive.moduleCount++] = {
@@ -127,9 +130,8 @@ ArcOdometryConfig makeArcOdometryConfig(const ChassisConfig& config) {
   }
   odometry.hasImu = sensors.imu != nullptr;
   odometry.imuScale = calibration.imuScale;
-  const double driveTrackWidth = driveTrackWidthInches(resolveDrive(config));
   odometry.effectiveTrackWidthInches = calibration.effectiveTrackWidthInches.value_or(
-      driveTrackWidth > 0.0 ? driveTrackWidth : config.geometry.trackWidthInches);
+      driveTrackWidthInches(resolveDrive(config)));
   odometry.velocitySmoothing = config.limits.velocitySmoothing;
   odometry.driveKinematics = driveGeometryKinematics(resolveDrive(config));
   return odometry;
@@ -141,12 +143,7 @@ double maxDriveSpeedInchesPerSecond(const ChassisConfig& config) {
   for (std::size_t i = 0; i < drive.moduleCount; ++i) {
     fastest = std::max(fastest, moduleTopSpeedInchesPerSecond(drive.modules[i]));
   }
-  if (fastest > 0.0) {
-    return fastest;
-  }
-  return maxWheelSpeedInchesPerSecond(
-      config.geometry.wheelDiameterInches,
-      cartridgeRpm(Cartridge::Blue600) * config.geometry.externalRatio);
+  return fastest;
 }
 
 }  // namespace cardLib

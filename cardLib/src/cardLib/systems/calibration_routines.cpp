@@ -110,14 +110,14 @@ void CalibrationRoutines::recordImuRun(double turns) {
 double CalibrationRoutines::currentVerticalDiameter(std::size_t index) const {
   const ChassisConfig& config = m_chassis.config();
   const TrackingWheelConfig* wheel = verticalWheel(config.sensors, index);
-  const double nominal = wheel != nullptr ? wheel->diameterInches : 0.0;
+  const double nominal = wheel != nullptr ? wheel->diameterInches.value() : 0.0;
   return config.calibration.verticalWheelDiameterInches[index].value_or(nominal);
 }
 
 double CalibrationRoutines::currentHorizontalDiameter() const {
   const ChassisConfig& config = m_chassis.config();
   const TrackingWheelConfig* wheel = config.sensors.horizontalWheel;
-  const double nominal = wheel != nullptr ? wheel->diameterInches : 0.0;
+  const double nominal = wheel != nullptr ? wheel->diameterInches.value() : 0.0;
   return config.calibration.horizontalWheelDiameterInches.value_or(nominal);
 }
 

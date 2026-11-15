@@ -284,7 +284,7 @@ std::optional<double> OdometryTask::verticalWheelInches(std::size_t index) {
     return std::nullopt;
   }
   const double diameter =
-      m_config.calibration.verticalWheelDiameterInches[index].value_or(wheel->diameterInches);
+      m_config.calibration.verticalWheelDiameterInches[index].value_or(wheel->diameterInches.value());
   return encoderDegreesToInches(*degrees, diameter, wheel->gearRatio);
 }
 
@@ -298,7 +298,7 @@ std::optional<double> OdometryTask::horizontalWheelInches() {
     return std::nullopt;
   }
   const double diameter =
-      m_config.calibration.horizontalWheelDiameterInches.value_or(wheel->diameterInches);
+      m_config.calibration.horizontalWheelDiameterInches.value_or(wheel->diameterInches.value());
   return encoderDegreesToInches(*degrees, diameter, wheel->gearRatio);
 }
 

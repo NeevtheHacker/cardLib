@@ -35,6 +35,7 @@ struct StartupReport {
   ReadyState state = ReadyState::NotCalibrated;
   std::array<PortIssue, MAX_STARTUP_PORT_ISSUES> portIssues = {};
   std::size_t portIssueCount = 0;
+  bool noDrive = false;  // no drive modules: none listed, or left/right without geometry
   bool noHeadingSource = false;
   bool imuCalibrationFailed = false;
   bool imuOrientationMismatch = false;

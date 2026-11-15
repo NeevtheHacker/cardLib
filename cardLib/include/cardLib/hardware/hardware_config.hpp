@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+#include "cardLib/hardware/required_value.hpp"
+
 namespace cardLib {
 
 class Encoder;
@@ -35,10 +37,11 @@ struct MotorConfig {
 };
 
 // A tracking wheel: its sensor and where it sits, x to the robot's right and y forward of the
-// center. Vertical wheels use x, the horizontal wheel uses y (SPEC section 5, step 3).
+// center. Vertical wheels use x, the horizontal wheel uses y (SPEC section 5, step 3). The
+// diameter has no default (SPEC 20.14): Omniwheel:: or your push-test value.
 struct TrackingWheelConfig {
   Encoder* sensor = nullptr;
-  double diameterInches = 2.75;
+  RequiredValue<double> diameterInches;
   double gearRatio = 1.0;  // wheel turns per sensor turn
   double xInches = 0.0;
   double yInches = 0.0;

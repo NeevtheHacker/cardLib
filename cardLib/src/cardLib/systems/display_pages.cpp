@@ -139,6 +139,9 @@ void renderDiagnostics(const DisplayData& data, DisplayScreen& screen) {
     setLine(screen[line++], "P%u %s: %s", static_cast<unsigned>(issue.port), issue.role,
             problemName(issue.problem));
   }
+  if (startup.noDrive && line < lastFree) {
+    setLine(screen[line++], "no drive: use tank()/customDrive()");
+  }
   if (startup.noHeadingSource && line < lastFree) {
     setLine(screen[line++], "no heading source (IMU/2 wheels)");
   }

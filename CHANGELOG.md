@@ -6,9 +6,22 @@ This file mirrors `docs/project/changelog.md`.
 
 ## Unreleased (planned as 0.2.0)
 
+### Breaking
+
+- `Geometry` has no default wheel diameter or track width any more (they were 3.25 in and
+  12 in), and `ChassisConfig::geometry` is now optional: set it only for the `{.left, .right}`
+  tank shorthand, as `config.geometry = cardLib::Geometry{.wheelDiameterInches = ...,
+  .trackWidthInches = ...}`. Leaving either value out is a compile error. Configs built with
+  `tank()`, `asterisk()` or `customDrive()` don't set it. The shorthand without `geometry`
+  starts with a "no drive" startup fault.
+- `TrackingWheelConfig::diameterInches` has no default any more (it was 2.75 in). Use an
+  `Omniwheel::` constant or your push-test value.
+
+### Added
+
 - One drivetrain model for every drive: wheel modules with a diameter, gearing, position and roll
   angle. `cardLib::tank()`, `cardLib::asterisk()` and `cardLib::customDrive()` presets. The old
-  `{.left, .right}` plus `Geometry` tank setup still works.
+  `{.left, .right}` plus `Geometry` tank setup still works (see Breaking).
 - `Omniwheel` measured wheel-size constants, `Gearing` as `{motorTeeth, wheelTeeth}` or a ratio,
   and 5.5 W motors at 200 rpm.
 - Drive kinematics computed at compile time, with a speed-match report and

@@ -19,6 +19,7 @@
 #include "cardLib/algorithms/localization/sensor_frame.hpp"
 #include "cardLib/hardware/hardware_config.hpp"
 #include "cardLib/hardware/motor_group.hpp"
+#include "cardLib/hardware/required_value.hpp"
 
 namespace cardLib {
 
@@ -53,11 +54,12 @@ struct SensorConfig {
   const GpsConfig* gps = nullptr;
 };
 
-// Physical facts. Change when the robot is rebuilt. The drive fields describe the tank
-// shorthand (DriveConfig left/right); a drive built from modules carries its own.
+// The tank shorthand's physical facts (DriveConfig left/right without modules). Diameter and
+// track width have no default (SPEC 20.14); a drive built with tank(), asterisk() or
+// customDrive() carries its own and leaves ChassisConfig::geometry empty.
 struct Geometry {
-  double wheelDiameterInches = 3.25;
-  double trackWidthInches = 12.0;
+  RequiredValue<double> wheelDiameterInches;
+  RequiredValue<double> trackWidthInches;
   double externalRatio = 1.0;  // G_ext: wheel turns per motor output turn, external gears only
 };
 
@@ -118,7 +120,7 @@ struct Limits {
 struct ChassisConfig {
   DriveConfig drive = {};
   SensorConfig sensors = {};
-  Geometry geometry = {};
+  std::optional<Geometry> geometry = std::nullopt;  // only for the left/right shorthand
   Calibration calibration = {};
   Gains gains = {};
   Limits limits = {};
@@ -129,7 +131,8 @@ struct ChassisConfig {
 ArcOdometryConfig makeArcOdometryConfig(const ChassisConfig& config);
 
 // The drive as wheel modules: the config's own, or the tank shorthand turned into a left and a
-// right module from Geometry. Reads only numbers and pointers, so it is safe in constructors.
+// right module from Geometry. The shorthand without Geometry gives no modules (the startup
+// report's noDrive). Reads only numbers and pointers, so it is safe in constructors.
 DriveConfig resolveDrive(const ChassisConfig& config);
 
 // True when every module rolls straight forward: a tank, however its wheels are listed.
@@ -152,6 +155,7 @@ DriveKinematics makeDriveKinematics(const DriveConfig& drive);
 DriveKinematics driveGeometryKinematics(const DriveConfig& drive);
 
 // The fastest any drive wheel's surface can move: the plausibility check's speed limit.
+// 0 when the config has no drive.
 double maxDriveSpeedInchesPerSecond(const ChassisConfig& config);
 
 }  // namespace cardLib
