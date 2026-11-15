@@ -1,6 +1,6 @@
 # .clang-format
 # Why: makes formatting automatic and identical for everyone (SPEC section 15).
-# Owns: the C++ style for cardLib/ and starter/.
+# Owns: the C++ style for cardLib/ and starter/. Checked with clang-format 23.1.5 (pip).
 BasedOnStyle: Google
 IndentWidth: 2
 ColumnLimit: 100
