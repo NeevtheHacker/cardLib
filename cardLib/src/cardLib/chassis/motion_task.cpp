@@ -41,6 +41,21 @@ MoveToPoseSettings moveToPoseSettings(const Gains& gains, const Limits& limits) 
           limits.handoffRadiusInches, limits.handoffSpeedInchesPerSecond};
 }
 
+StrafeSettings strafeSettings(const Gains& gains, const Limits& limits) {
+  return {gains.strafe, gains.heading, limits.moveExits, limits.useCurrentForStall};
+}
+
+// Holonomic translation is on the forward speed scale, so it uses the linear gains.
+HolonomicMoveToPointSettings holonomicPointSettings(const Gains& gains, const Limits& limits) {
+  return {gains.linear, gains.heading, limits.moveExits, limits.useCurrentForStall};
+}
+
+// The heading is a target here, not a hold, so it uses the turn gains.
+HolonomicMoveToPoseSettings holonomicPoseSettings(const Gains& gains, const Limits& limits) {
+  return {{gains.linear, gains.turn, limits.moveExits, limits.useCurrentForStall},
+          limits.turnExits};
+}
+
 // Whether a command leaves every wheel at 0 V and none held, so the drive can brake instead.
 bool isStill(const DriveCommand& command) {
   if (command.wheelCount == 0) {
@@ -72,6 +87,9 @@ Pose recordedTarget(const MotionCommand& command, const Pose& startPose) {
   if (command.kind == MotionKind::Move) {
     return {0.0, command.distanceInches, startPose.headingDegrees};
   }
+  if (command.kind == MotionKind::Strafe) {
+    return {command.distanceInches, 0.0, startPose.headingDegrees};
+  }
   return command.target;
 }
 
@@ -90,7 +108,11 @@ MotionTask::MotionTask(const ChassisConfig& config, OdometryTask& odometry,
       m_pivotTurn(pivotSettings(config.gains, config.limits)),
       m_moveToPoint(moveToPointSettings(config.gains, config.limits)),
       m_moveToPose(moveToPoseSettings(config.gains, config.limits)),
-      m_pipeline(config.gains.linearSlew, config.gains.angularSlew) {}
+      m_strafe(strafeSettings(config.gains, config.limits)),
+      m_holonomicMoveToPoint(holonomicPointSettings(config.gains, config.limits)),
+      m_holonomicMoveToPose(holonomicPoseSettings(config.gains, config.limits)),
+      m_pipeline(UNIT_TANK_KINEMATICS, config.gains.linearSlew, config.gains.strafeSlew,
+                 config.gains.angularSlew) {}
 
 void MotionTask::start() {
   if (m_task != nullptr) {
@@ -311,18 +333,39 @@ MotionAlgorithm* MotionTask::configureMotion(const MotionCommand& command) {
       m_turn.configurePoint(point, command.options);
       return &m_turn;
     case MotionKind::PivotTurn:
-      m_pivotTurn.configure(command.target.headingDegrees, command.lockedSide, command.options);
+      if (command.pivotAboutPoint) {
+        m_pivotTurn.configure(command.target.headingDegrees, command.pivotPoint, command.options);
+      } else {
+        m_pivotTurn.configure(command.target.headingDegrees, command.lockedSide, command.options);
+      }
       return &m_pivotTurn;
     case MotionKind::MoveToPoint:
+      if (runsHolonomic(command)) {
+        m_holonomicMoveToPoint.configure(point, command.options);
+        return &m_holonomicMoveToPoint;
+      }
       m_moveToPoint.configure(point, command.options);
       return &m_moveToPoint;
     case MotionKind::MoveToPose:
+      if (runsHolonomic(command)) {
+        m_holonomicMoveToPose.configure(command.target, command.options);
+        return &m_holonomicMoveToPose;
+      }
       m_moveToPose.configure(command.target, command.options);
       return &m_moveToPose;
+    case MotionKind::Strafe:
+      m_strafe.configure(command.distanceInches, command.options);
+      return &m_strafe;
     case MotionKind::None:
       break;
   }
   return nullptr;
+}
+
+// moveToPoint and moveToPose run holonomically on a drive that can strafe, unless the motion
+// asks for the tank style (SPEC 20.10).
+bool MotionTask::runsHolonomic(const MotionCommand& command) const {
+  return m_pipeline.kinematics().canStrafe() && !command.options.tankStyle;
 }
 
 void MotionTask::stepActive(const OdometrySnapshot& odometry, double dtSeconds,
@@ -455,7 +498,10 @@ void MotionTask::applyGains(const Gains& gains) {
   m_pivotTurn.setSettings(pivotSettings(gains, limits));
   m_moveToPoint.setSettings(moveToPointSettings(gains, limits));
   m_moveToPose.setSettings(moveToPoseSettings(gains, limits));
-  m_pipeline.setRates(gains.linearSlew, gains.angularSlew);
+  m_strafe.setSettings(strafeSettings(gains, limits));
+  m_holonomicMoveToPoint.setSettings(holonomicPointSettings(gains, limits));
+  m_holonomicMoveToPose.setSettings(holonomicPoseSettings(gains, limits));
+  m_pipeline.setRates(gains.linearSlew, gains.strafeSlew, gains.angularSlew);
 }
 
 // SPEC section 9 optional current check: half the drive motors over the threshold while the

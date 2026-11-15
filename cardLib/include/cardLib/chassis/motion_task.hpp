@@ -12,10 +12,13 @@
 #include "cardLib/algorithms/control/drive_pipeline.hpp"
 #include "cardLib/algorithms/interfaces/motion_algorithm.hpp"
 #include "cardLib/algorithms/motion/motion_result.hpp"
+#include "cardLib/algorithms/motion/holonomic_move_to_point.hpp"
+#include "cardLib/algorithms/motion/holonomic_move_to_pose.hpp"
 #include "cardLib/algorithms/motion/move.hpp"
 #include "cardLib/algorithms/motion/move_to_point.hpp"
 #include "cardLib/algorithms/motion/move_to_pose.hpp"
 #include "cardLib/algorithms/motion/pivot_turn.hpp"
+#include "cardLib/algorithms/motion/strafe.hpp"
 #include "cardLib/algorithms/motion/turn.hpp"
 #include "cardLib/chassis/chassis_config.hpp"
 #include "cardLib/chassis/motion_command.hpp"
@@ -97,6 +100,7 @@ class MotionTask {
   void handleIntake(const Intake& intake, const OdometrySnapshot& odometry);
   void startMotion(const MotionCommand& command, std::uint32_t id, const RobotState& state);
   MotionAlgorithm* configureMotion(const MotionCommand& command);
+  bool runsHolonomic(const MotionCommand& command) const;
   void stepActive(const OdometrySnapshot& odometry, double dtSeconds, const Intake& intake);
   void finishActive(MotionResult result, bool brake, const Pose& endPose);
   void applyCommand(const DriveCommand& command);
@@ -137,6 +141,9 @@ class MotionTask {
   PivotTurn m_pivotTurn;
   MoveToPoint m_moveToPoint;
   MoveToPose m_moveToPose;
+  Strafe m_strafe;
+  HolonomicMoveToPoint m_holonomicMoveToPoint;
+  HolonomicMoveToPose m_holonomicMoveToPose;
   DrivePipeline m_pipeline;
   MotionAlgorithm* m_active = nullptr;
   MotionCommand m_activeCommand = {};

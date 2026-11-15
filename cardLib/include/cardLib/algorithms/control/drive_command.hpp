@@ -8,13 +8,12 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "cardLib/algorithms/control/wheel_module_limit.hpp"
+
 namespace cardLib {
 
 constexpr double MAX_SPEED = 127.0;
 constexpr std::int32_t MAX_MILLIVOLTS = 12000;
-
-// Up to this many wheel modules per drive (SPEC 20.13).
-constexpr std::size_t MAX_WHEEL_MODULES = 8;
 
 // A side of the drivetrain, e.g. the locked side of a pivot turn.
 enum class Side { Left, Right };

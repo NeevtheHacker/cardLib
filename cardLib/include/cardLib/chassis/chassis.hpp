@@ -81,6 +81,15 @@ class Chassis {
   MotionResult moveToPose(double xInches, double yInches, double headingDegrees,
                           const MotionOptions& options = {});
 
+  // Holonomic drives (SPEC 20.10). On a drive that can strafe, moveToPoint and moveToPose above
+  // run holonomically (heading held, no turn first) unless options.tankStyle is set.
+  // strafe: slide sideways, positive right, holding the heading. Unsupported on a tank.
+  MotionResult strafe(double distanceInches, const MotionOptions& options = {});
+  // Turn about a robot-local point (SPEC 20.9), e.g. a wheel. A tank can only turn about points
+  // on its axle line (forwardInches = 0); anything else is Unsupported there.
+  MotionResult pivotTurn(double headingDegrees, const LocalOffset& pivotPoint,
+                         const MotionOptions& options = {});
+
   // Motion sync, for the last motion started. waitUntil counts inches for moves and degrees
   // for turns; false if the motion ended first.
   bool waitUntil(double progress);
@@ -91,6 +100,17 @@ class Chassis {
   // Driver control, -127 to 127. Either one cancels a running motion.
   void tank(double leftStick, double rightStick);
   void arcade(double forwardStick, double turnStick);
+  // Forward, strafe (right) and turn sticks on any drive (SPEC 20.11). Uses the drive mode, or
+  // options.fieldCentric for this call only. Field-centric falls back to robot-centric if the
+  // IMU faults, and is ignored on a tank (fieldCentricIgnored() then reports it).
+  void holonomic(double forwardStick, double strafeStick, double turnStick,
+                 const HolonomicOptions& options = {});
+  void setDriveMode(DriveMode mode);
+  DriveMode driveMode() const { return m_driveMode.load(); }
+  // Makes the way the robot faces now the field-centric "forward".
+  void resetFieldHeading();
+  // True once field-centric driving was asked for on a drive that can't strafe.
+  bool fieldCentricIgnored() const { return m_fieldCentricIgnored.load(); }
   // Raw side voltages through the motion task, no curves. For test and calibration routines.
   // Every left module gets the left value and every right module the right one.
   void driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts);
@@ -118,6 +138,9 @@ class Chassis {
 
  private:
   MotionResult runMotion(MotionCommand command);
+  bool supports(const MotionCommand& command) const;
+  MotionResult refuseUnsupported(const MotionCommand& command);
+  bool fieldHeadingAvailable(const OdometrySnapshot& odometry) const;
   void registerDevices(PortRegistry& registry) const;
   void initializeDevices();
   void checkHeadingSource();
@@ -141,6 +164,9 @@ class Chassis {
   std::atomic<std::uint32_t> m_lastMotionId{0};
   std::atomic<bool> m_allowDegraded{false};
   std::atomic<BrakeMode> m_driverBrake;
+  std::atomic<DriveMode> m_driveMode{DriveMode::RobotCentric};
+  std::atomic<double> m_fieldForwardDegrees{0.0};
+  std::atomic<bool> m_fieldCentricIgnored{false};
   bool m_tasksStarted = false;
 };
 

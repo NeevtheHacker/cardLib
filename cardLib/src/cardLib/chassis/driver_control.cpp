@@ -23,6 +23,14 @@ DriverCommand DriverControl::arcade(double forwardStick, double turnStick) const
                      .turn = applyDriveCurve(turnStick, m_turnCurve)}};
 }
 
+DriverCommand DriverControl::holonomic(double forwardStick, double strafeStick,
+                                       double turnStick) const {
+  return {.mixSpeeds = true,
+          .speeds = {.forward = applyDriveCurve(forwardStick, m_throttleCurve),
+                     .strafe = applyDriveCurve(strafeStick, m_throttleCurve),
+                     .turn = applyDriveCurve(turnStick, m_turnCurve)}};
+}
+
 void DriverControl::setCurves(const DriveCurve& throttleCurve, const DriveCurve& turnCurve) {
   m_throttleCurve = throttleCurve;
   m_turnCurve = turnCurve;

@@ -85,48 +85,50 @@ constexpr double rowComponent(const WheelRow& row, std::size_t column) {
   return column == 0 ? row.strafe : (column == 1 ? row.forward : row.turn);
 }
 
+using Matrix3 = std::array<std::array<double, 3>, 3>;
+
+// Inverts a 3 x 3 matrix by cofactors. False if it is singular next to its diagonal.
+constexpr bool invertMatrix3(const Matrix3& m, Matrix3& inverse) {
+  const double det = m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                     m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                     m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  if (constexprAbs(det) <= KINEMATICS_EPSILON * constexprAbs(m[0][0] * m[1][1] * m[2][2])) {
+    return false;
+  }
+  for (std::size_t r = 0; r < 3; ++r) {
+    for (std::size_t c = 0; c < 3; ++c) {
+      const std::size_t r1 = (c + 1) % 3, r2 = (c + 2) % 3;
+      const std::size_t c1 = (r + 1) % 3, c2 = (r + 2) % 3;
+      inverse[r][c] = (m[r1][c1] * m[r2][c2] - m[r1][c2] * m[r2][c1]) / det;
+    }
+  }
+  return true;
+}
+
 // Solves the 3 x 3 normal equations (A^T A) v = A^T s for the weights, with a column that no
 // usable wheel touches pinned to 0 (a tank can't measure sideways motion).
 constexpr ForwardWeights solveForwardWeights(const std::array<WheelRow, MAX_WHEEL_MODULES>& rows,
                                              std::size_t count,
                                              const std::array<bool, MAX_WHEEL_MODULES>& usable) {
-  ForwardWeights result;
   std::array<bool, 3> known = {};
-  double normal[3][3] = {};
+  Matrix3 normal = {};
+  double scale = 0.0;
   for (std::size_t i = 0; i < count; ++i) {
-    if (!usable[i]) {
-      continue;
-    }
-    for (std::size_t r = 0; r < 3; ++r) {
+    for (std::size_t r = 0; usable[i] && r < 3; ++r) {
       known[r] = known[r] || constexprAbs(rowComponent(rows[i], r)) > KINEMATICS_EPSILON;
       for (std::size_t c = 0; c < 3; ++c) {
         normal[r][c] += rowComponent(rows[i], r) * rowComponent(rows[i], c);
       }
+      scale = normal[r][r] > scale ? normal[r][r] : scale;
     }
   }
-  double scale = 0.0;
   for (std::size_t r = 0; r < 3; ++r) {
-    scale = normal[r][r] > scale ? normal[r][r] : scale;
+    normal[r][r] = known[r] ? normal[r][r] : (scale > 0.0 ? scale : 1.0);
   }
-  for (std::size_t r = 0; r < 3; ++r) {
-    if (!known[r]) {
-      normal[r][r] = scale > 0.0 ? scale : 1.0;
-    }
-  }
-  const double det = normal[0][0] * (normal[1][1] * normal[2][2] - normal[1][2] * normal[2][1]) -
-                     normal[0][1] * (normal[1][0] * normal[2][2] - normal[1][2] * normal[2][0]) +
-                     normal[0][2] * (normal[1][0] * normal[2][1] - normal[1][1] * normal[2][0]);
-  const double diagonalProduct = normal[0][0] * normal[1][1] * normal[2][2];
-  if (!known[1] || !known[2] || constexprAbs(det) <= KINEMATICS_EPSILON * diagonalProduct) {
+  ForwardWeights result;
+  Matrix3 inverse = {};
+  if (!known[1] || !known[2] || !invertMatrix3(normal, inverse)) {
     return result;
-  }
-  double inverse[3][3] = {};
-  for (std::size_t r = 0; r < 3; ++r) {
-    for (std::size_t c = 0; c < 3; ++c) {
-      const std::size_t r1 = (c + 1) % 3, r2 = (c + 2) % 3;
-      const std::size_t c1 = (r + 1) % 3, c2 = (r + 2) % 3;
-      inverse[r][c] = (normal[r1][c1] * normal[r2][c2] - normal[r1][c2] * normal[r2][c1]) / det;
-    }
   }
   for (std::size_t r = 0; r < 3; ++r) {
     for (std::size_t i = 0; i < count; ++i) {

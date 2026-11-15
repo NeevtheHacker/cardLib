@@ -167,6 +167,8 @@ void OdometryTask::readDrive(SensorFrame& frame, double dtSeconds) {
     const auto inches = remember(moduleInches(i), m_totals.driveWheelInches[i]);
     deltas[i] = m_driveChecks[i].measure(inches, dtSeconds);
   }
+  frame.driveWheels = deltas;
+  frame.driveWheelCount = m_drive.moduleCount;
   combineSides(frame, deltas);
 }
 

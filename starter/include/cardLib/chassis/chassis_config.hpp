@@ -80,6 +80,8 @@ struct Gains {
   PidGains pivot = {.kP = 3.0};     // pivotTurn (tune)
   SlewRates linearSlew = {.accelPerSecond = 500.0, .decelPerSecond = 1500.0};    // (tune)
   SlewRates angularSlew = {.accelPerSecond = 1500.0, .decelPerSecond = 3000.0};  // (tune)
+  PidGains strafe = {.kP = 10.0};  // strafe distance; holonomic moveToPoint uses linear (tune)
+  SlewRates strafeSlew = {.accelPerSecond = 500.0, .decelPerSecond = 1500.0};  // (tune)
 };
 
 // Telemetry channels the terminal prints; 0 prints nothing (a match build).
@@ -142,6 +144,9 @@ double moduleTopSpeedInchesPerSecond(const DriveModule& module);
 
 // The kinematics of a resolved drive, from each module's own motors (SPEC 20.7).
 DriveKinematics makeDriveKinematics(const DriveConfig& drive);
+
+// The same rows with every top speed set to 1: enough for forward kinematics, and reads no motor.
+DriveKinematics driveGeometryKinematics(const DriveConfig& drive);
 
 // The fastest any drive wheel's surface can move: the plausibility check's speed limit.
 double maxDriveSpeedInchesPerSecond(const ChassisConfig& config);

@@ -1,5 +1,6 @@
 // test_modes.hpp
-// Why: the Tests page checks: port and direction, sensor signs, tape box (SPEC 6, 13, 17).
+// Why: the Tests page checks: port and direction per wheel module, sensor signs, tape box
+//      (SPEC 6, 13, 17, 20.3).
 // Owns: the requested test and the last results. Drives only through the chassis, and reads
 //       sensors only through the odometry snapshot.
 #pragma once
@@ -21,9 +22,11 @@ namespace cardLib {
 enum class TestKind { PortCheck, SignCheck, TapeBox };
 constexpr std::size_t TEST_KIND_COUNT = 3;
 
-// One drive motor at 10 % with its side's wheels off the ground.
+// One drive motor at 10 %, its module spun alone with the wheels off the ground.
 struct MotorCheck {
   std::uint8_t port = 0;
+  std::size_t module = 0;         // which wheel module, in the drive's order
+  double rollAngleDegrees = 0.0;  // the way that module should push the robot (SPEC 20.3)
   Side side = Side::Left;
   bool answering = false;
   double rpm = 0.0;
@@ -33,9 +36,12 @@ struct MotorCheck {
 
 struct PortCheckReport {
   bool ran = false;
-  std::array<MotorCheck, 2 * MAX_MOTORS_PER_GROUP> motors = {};
+  std::array<MotorCheck, MAX_WHEEL_MODULES * MAX_MOTORS_PER_GROUP> motors = {};
   std::size_t motorCount = 0;
 };
+
+// Which way a module with this roll angle should push the robot, e.g. "forward-right".
+const char* pushDirectionName(double rollAngleDegrees);
 
 // Changes over a hand push: forward, then right, then a clockwise turn. Every one should be
 // positive.
@@ -60,7 +66,8 @@ class TestModes {
   void request(TestKind kind) { m_requested.store(static_cast<int>(kind)); }
   void runPending();
 
-  // Wheels off the ground: each side at 10 % for 1 s, every motor's speed read (blocking).
+  // Wheels off the ground: each wheel module alone at 10 % for 1 s, every motor's speed read,
+  // and one terminal line per module saying which way it should push (blocking).
   PortCheckReport runPortCheck();
 
   // Two presses each: start, then finish after moving the robot by hand.
@@ -75,7 +82,7 @@ class TestModes {
  private:
   static constexpr int NO_REQUEST = -1;
 
-  void checkSide(MotorGroup* group, Side side, PortCheckReport& report);
+  void checkModule(std::size_t module, PortCheckReport& report);
 
   Chassis& m_chassis;
   std::atomic<int> m_requested{NO_REQUEST};

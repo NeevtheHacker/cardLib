@@ -12,13 +12,24 @@
 
 namespace cardLib {
 
-enum class MotionKind { None, Move, Turn, TurnToPoint, PivotTurn, MoveToPoint, MoveToPose };
+enum class MotionKind {
+  None,
+  Move,
+  Turn,
+  TurnToPoint,
+  PivotTurn,
+  MoveToPoint,
+  MoveToPose,
+  Strafe,
+};
 
 struct MotionCommand {
   MotionKind kind = MotionKind::None;
-  double distanceInches = 0.0;  // move
+  double distanceInches = 0.0;  // move, strafe
   Pose target = {};             // turn: heading; point motions: x, y; moveToPose: all three
   Side lockedSide = Side::Left;  // pivotTurn
+  bool pivotAboutPoint = false;  // pivotTurn about pivotPoint instead of a side (SPEC 20.9)
+  LocalOffset pivotPoint = {};
   MotionOptions options = {};
 };
 

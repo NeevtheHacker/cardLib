@@ -191,6 +191,7 @@ DisplayData Display::gatherData() {
   data.odometry = m_chassis.odometrySnapshot();
   data.motion = m_chassis.motionStatus();
   data.startup = m_chassis.startupReport();
+  data.fieldCentricIgnored = m_chassis.fieldCentricIgnored();
   data.calibrationSource = m_chassis.config().calibration.source;
   data.gains = m_chassis.gains();
   data.tunerField = m_tunerField;

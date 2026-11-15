@@ -3,9 +3,12 @@
 // Owns: nothing beyond TestModes' own state.
 #include "cardLib/systems/test_modes.hpp"
 
+#include <array>
 #include <cmath>
+#include <cstdio>
 
 #include "cardLib/algorithms/control/drive_mixer.hpp"
+#include "cardLib/algorithms/math/angle.hpp"
 
 namespace cardLib {
 
@@ -34,36 +37,62 @@ void TestModes::runPending() {
   }
 }
 
+const char* pushDirectionName(double rollAngleDegrees) {
+  constexpr const char* NAMES[] = {"backward",      "backward-left", "left",  "forward-left",
+                                   "forward",       "forward-right", "right", "backward-right"};
+  constexpr double STEP_DEGREES = 45.0;
+  const double steps = std::round(wrapDegrees(rollAngleDegrees) / STEP_DEGREES);
+  const int index = static_cast<int>(steps) + 4;
+  if (std::abs(wrapDegrees(rollAngleDegrees) - steps * STEP_DEGREES) > 1.0 || index < 0 ||
+      index > 7) {
+    return "at its roll angle";
+  }
+  return NAMES[index];
+}
+
 PortCheckReport TestModes::runPortCheck() {
   PortCheckReport report;
   report.ran = true;
-  checkSide(m_chassis.config().drive.left, Side::Left, report);
-  checkSide(m_chassis.config().drive.right, Side::Right, report);
+  for (std::size_t module = 0; module < m_chassis.drive().moduleCount; ++module) {
+    checkModule(module, report);
+  }
   m_resultsMutex.take();
   m_portCheck = report;
   m_resultsMutex.give();
   return report;
 }
 
-void TestModes::checkSide(MotorGroup* group, Side side, PortCheckReport& report) {
+// Spins one module alone: a positive command should turn every motor in it forward, which
+// pushes the robot the way its roll angle says (SPEC 20.3).
+void TestModes::checkModule(std::size_t module, PortCheckReport& report) {
+  const DriveModule& drive = m_chassis.drive().modules[module];
+  MotorGroup* const group = drive.motors;
   if (group == nullptr) {
     return;
   }
-  const auto millivolts = static_cast<std::int32_t>(TEST_FRACTION * MAX_MILLIVOLTS);
-  m_chassis.driveMillivolts(side == Side::Left ? millivolts : 0,
-                            side == Side::Right ? millivolts : 0);
+  std::printf("module %u (x %.1f, y %.1f, roll %+.0f deg): should push the robot %s\n",
+              static_cast<unsigned>(module + 1), drive.xInches, drive.yInches,
+              drive.rollAngleDegrees, pushDirectionName(drive.rollAngleDegrees));
+  std::array<std::int32_t, MAX_WHEEL_MODULES> millivolts = {};
+  millivolts[module] = static_cast<std::int32_t>(TEST_FRACTION * MAX_MILLIVOLTS);
+  m_chassis.driveMillivolts(millivolts);
   pros::delay(SPIN_UP_MS);
-  for (std::size_t i = 0; i < group->size(); ++i) {
+  for (std::size_t i = 0; i < group->size() && report.motorCount < report.motors.size(); ++i) {
     MotorCheck& check = report.motors[report.motorCount++];
     check.port = group->motor(i).port;
-    check.side = side;
+    check.module = module;
+    check.rollAngleDegrees = drive.rollAngleDegrees;
+    check.side = drive.xInches < 0.0 ? Side::Left : Side::Right;
     const std::optional<double> rpm = group->velocityRpm(i);
     check.answering = rpm.has_value();
     check.rpm = rpm.value_or(0.0);
-    const double expectedRpm = TEST_FRACTION * cartridgeRpm(group->motor(i).cartridge);
+    const double expectedRpm = TEST_FRACTION * motorRpm(group->motor(i));
     check.directionOk = check.rpm > 0.0;
     check.speedOk =
         std::abs(check.rpm - expectedRpm) <= SPEED_TOLERANCE_FRACTION * expectedRpm;
+    std::printf("  P%u %+.0f rpm  %s  %s\n", static_cast<unsigned>(check.port), check.rpm,
+                check.directionOk ? "direction ok" : "WRONG DIRECTION",
+                check.speedOk ? "speed ok" : "SPEED? (cartridge)");
   }
   pros::delay(SPIN_TOTAL_MS - SPIN_UP_MS);
   m_chassis.driveMillivolts(0, 0);

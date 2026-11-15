@@ -82,6 +82,18 @@ double moduleTopSpeedInchesPerSecond(const DriveModule& module) {
                                       moduleMotorRpm(module) * module.gearRatio);
 }
 
+// The drive's rows from positions and roll angles alone (top speeds of 1), for odometry's
+// forward kinematics, which never needs speeds. Reads no motor, so it is safe in constructors.
+DriveKinematics driveGeometryKinematics(const DriveConfig& drive) {
+  std::array<WheelSpec, MAX_WHEEL_MODULES> wheels = {};
+  const std::size_t count = std::min(drive.moduleCount, MAX_WHEEL_MODULES);
+  for (std::size_t i = 0; i < count; ++i) {
+    const DriveModule& module = drive.modules[i];
+    wheels[i] = {module.xInches, module.yInches, module.rollAngleDegrees, 1.0};
+  }
+  return DriveKinematics(std::span<const WheelSpec>(wheels.data(), count));
+}
+
 DriveKinematics makeDriveKinematics(const DriveConfig& drive) {
   std::array<WheelSpec, MAX_WHEEL_MODULES> wheels = {};
   const std::size_t count = std::min(drive.moduleCount, MAX_WHEEL_MODULES);
@@ -119,6 +131,7 @@ ArcOdometryConfig makeArcOdometryConfig(const ChassisConfig& config) {
   odometry.effectiveTrackWidthInches = calibration.effectiveTrackWidthInches.value_or(
       driveTrackWidth > 0.0 ? driveTrackWidth : config.geometry.trackWidthInches);
   odometry.velocitySmoothing = config.limits.velocitySmoothing;
+  odometry.driveKinematics = driveGeometryKinematics(resolveDrive(config));
   return odometry;
 }
 

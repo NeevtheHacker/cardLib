@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <optional>
 
+#include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/interfaces/pose_estimator.hpp"
 #include "cardLib/algorithms/localization/heading_disagreement.hpp"
 #include "cardLib/algorithms/math/ema_filter.hpp"
@@ -24,6 +25,10 @@ struct ArcOdometryConfig {
   double imuScale = 1.0;                   // k_imu
   double effectiveTrackWidthInches = 0.0;  // W_eff, for the drive-encoder fallback
   double velocitySmoothing = 0.5;          // EMA alpha (tune)
+  // The drive's wheel rows (only positions and roll angles matter here). When some wheel rolls
+  // sideways, the drive-encoder fallback uses least-squares forward kinematics on
+  // SensorFrame::driveWheels instead of left/right (SPEC 20.12).
+  DriveKinematics driveKinematics = {};
 };
 
 class ArcOdometry : public PoseEstimator {
@@ -50,13 +55,19 @@ class ArcOdometry : public PoseEstimator {
   std::optional<double> forwardChange(const SensorFrame& frame, double headingRadians);
   std::optional<double> driveForwardChange(const SensorFrame& frame, double headingRadians);
   double sidewaysChange(const SensorFrame& frame, double headingRadians);
+  double driveSidewaysChange();
+  BodyMotion driveBodyMotion(const SensorFrame& frame) const;
   void integrate(double forwardInches, double sidewaysInches, double headingRadians);
-  void updateVelocities(double forwardInches, double headingRadians, double dtSeconds);
+  void updateVelocities(double forwardInches, double sidewaysInches, double headingRadians,
+                        double dtSeconds);
 
   ArcOdometryConfig m_config;
   RobotState m_state;
   EmaFilter m_linearVelocity;
+  EmaFilter m_sidewaysVelocity;
   EmaFilter m_angularVelocity;
+  bool m_holonomicDrive = false;  // some drive wheel rolls sideways: use forward kinematics
+  BodyMotion m_driveMotion = {};  // this loop's forward-kinematics result (holonomic only)
   HeadingDisagreement m_disagreement;
   double m_lastImuRotationDegrees = 0.0;
   bool m_hasImuBaseline = false;

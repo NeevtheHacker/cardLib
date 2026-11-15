@@ -14,6 +14,7 @@ enum class OdometryHealth { Ok, Degraded, Faulted };
 struct RobotState {
   Pose pose = {};
   double linearVelocityInchesPerSecond = 0.0;    // along the robot's heading
+  double sidewaysVelocityInchesPerSecond = 0.0;  // to the robot's right (SPEC 20.12)
   double angularVelocityDegreesPerSecond = 0.0;  // clockwise positive
   OdometryHealth health = OdometryHealth::Ok;
   bool wheelHeadingSuspect = false;  // wheels and IMU disagree (slip or a lifted wheel)

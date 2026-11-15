@@ -22,6 +22,9 @@ struct MotionOptions {
   TurnDirection direction = TurnDirection::Shortest;
   bool async = false;          // return MotionResult::Started at once
   bool allowDegraded = false;  // run even when odometry is on a fallback
+  // Holonomic moveToPoint: the heading to hold; empty = the heading it started at (SPEC 20.10).
+  std::optional<double> headingDegrees = std::nullopt;
+  bool tankStyle = false;  // holonomic drive: run moveToPoint / moveToPose the tank way
 };
 
 }  // namespace cardLib

@@ -13,6 +13,7 @@ enum class MotionResult {
   Cancelled,      // cancel() was called, or driver control took over
   SensorFault,    // a required sensor failed with no fallback, or odometry is degraded
   NotCalibrated,  // startup validation hasn't passed
+  Unsupported,    // this drive can't make the motion, e.g. strafe on a tank (SPEC 20.10)
 };
 
 }  // namespace cardLib

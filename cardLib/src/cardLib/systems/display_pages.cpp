@@ -63,8 +63,8 @@ const char* orientationName(std::optional<ImuOrientation> orientation) {
 }
 
 const char* motionName(MotionKind kind) {
-  constexpr const char* NAMES[] = {"none",        "move",          "turn",       "turnToPoint",
-                                   "pivotTurn",   "moveToPoint",   "moveToPose"};
+  constexpr const char* NAMES[] = {"none",      "move",        "turn",       "turnToPoint",
+                                   "pivotTurn", "moveToPoint", "moveToPose", "strafe"};
   return NAMES[static_cast<int>(kind)];
 }
 
@@ -106,8 +106,8 @@ void renderPose(const DisplayData& data, DisplayScreen& screen) {
   setLine(screen[2], "odom %s%s", healthName(state.health),
           state.wheelHeadingSuspect ? "  wheel slip?" : "");
   setLine(screen[3], "CAL: %s", data.calibrationSource);
-  setLine(screen[4], "v %6.1f in/s  w %6.1f deg/s", state.linearVelocityInchesPerSecond,
-          state.angularVelocityDegreesPerSecond);
+  setLine(screen[4], "v %5.1f side %5.1f w %6.1f", state.linearVelocityInchesPerSecond,
+          state.sidewaysVelocityInchesPerSecond, state.angularVelocityDegreesPerSecond);
   if (data.motion.moving) {
     setLine(screen[5], "%s  %.1f -> %.1f", motionName(data.motion.kind), data.motion.measured,
             data.motion.target);
@@ -149,6 +149,9 @@ void renderDiagnostics(const DisplayData& data, DisplayScreen& screen) {
   if (startup.imuCalibrationFailed && line < lastFree) {
     setLine(screen[line++], "IMU calibration failed");
   }
+  if (data.fieldCentricIgnored && line < lastFree) {
+    setLine(screen[line++], "field-centric ignored: tank drive");
+  }
   if (line < lastFree) {
     setLine(screen[line++], "IMU drift %.3f deg%s", startup.imuDriftDegrees,
             startup.imuDriftTooHigh ? " TOO HIGH" : "");
@@ -168,9 +171,10 @@ void renderPortCheck(const PortCheckReport& report, DisplayScreen& screen) {
   }
   for (std::size_t i = 0; i < report.motorCount && 2 + i < DISPLAY_LINES; ++i) {
     const MotorCheck& motor = report.motors[i];
-    setLine(screen[2 + i], "P%u %c %+5.0f rpm %s %s", static_cast<unsigned>(motor.port),
-            motor.side == Side::Left ? 'L' : 'R', motor.rpm,
-            motor.directionOk ? "dir ok" : "DIR?", motor.speedOk ? "spd ok" : "SPEED?");
+    setLine(screen[2 + i], "M%u %+4.0f P%u %+5.0f rpm %s %s",
+            static_cast<unsigned>(motor.module + 1), motor.rollAngleDegrees,
+            static_cast<unsigned>(motor.port), motor.rpm, motor.directionOk ? "ok" : "DIR?",
+            motor.speedOk ? "ok" : "SPD?");
   }
 }
 

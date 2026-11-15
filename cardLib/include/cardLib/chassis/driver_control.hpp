@@ -4,10 +4,21 @@
 //       and autonomous never fight over the motors.
 #pragma once
 
+#include <optional>
+
 #include "cardLib/algorithms/control/drive_curve.hpp"
 #include "cardLib/chassis/motion_command.hpp"
 
 namespace cardLib {
+
+// Robot-centric: stick forward moves the way the robot faces. Field-centric: stick forward
+// always moves away from the driver (SPEC 20.11). Robot-centric is the default.
+enum class DriveMode { RobotCentric, FieldCentric };
+
+// Per-call options for Chassis::holonomic(). fieldCentric overrides the drive mode for this call.
+struct HolonomicOptions {
+  std::optional<bool> fieldCentric = std::nullopt;
+};
 
 class DriverControl {
  public:
@@ -17,6 +28,9 @@ class DriverControl {
   // Sticks on the -127 to 127 scale.
   DriverCommand tank(double leftStick, double rightStick) const;
   DriverCommand arcade(double forwardStick, double turnStick) const;
+  // Forward and strafe use the throttle curve, turn the turn curve. Already field-rotated if
+  // field-centric; on a tank the strafe stick does nothing.
+  DriverCommand holonomic(double forwardStick, double strafeStick, double turnStick) const;
 
   void setCurves(const DriveCurve& throttleCurve, const DriveCurve& turnCurve);
 

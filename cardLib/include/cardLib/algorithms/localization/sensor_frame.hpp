@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 
+#include "cardLib/algorithms/control/wheel_module_limit.hpp"
 #include "cardLib/algorithms/math/loop_timing.hpp"
 
 namespace cardLib {
@@ -36,9 +37,13 @@ struct SensorFrame {
   std::array<WheelDelta, MAX_VERTICAL_WHEELS> verticalWheels = {};
   WheelDelta horizontalWheel = {};
 
-  // Drive motor encoders, already scaled by the external ratio and drive scale.
+  // Drive motor encoders, already scaled by the external ratio and drive scale. A tank's
+  // modules are combined into leftDrive and rightDrive; a holonomic drive leaves those unusable
+  // and odometry uses driveWheels with forward kinematics (SPEC 20.12).
   WheelDelta leftDrive = {};
   WheelDelta rightDrive = {};
+  std::array<WheelDelta, MAX_WHEEL_MODULES> driveWheels = {};  // each module, in drive order
+  std::size_t driveWheelCount = 0;
 
   // Raw IMU rotation (unscaled, clockwise positive, continuous) and turn rate. imuReadOk: this
   // loop's read worked (a missed read just waits for the next one). imuFaulted: three failed

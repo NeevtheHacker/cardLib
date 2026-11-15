@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "cardLib/algorithms/control/field_centric.hpp"
 #include "cardLib/hardware/distance_sensor.hpp"
 #include "cardLib/hardware/imu.hpp"
 #include "pros/misc.h"
@@ -248,9 +249,26 @@ MotionResult Chassis::moveToPose(double xInches, double yInches, double headingD
                     .options = options});
 }
 
+MotionResult Chassis::strafe(double distanceInches, const MotionOptions& options) {
+  return runMotion({.kind = MotionKind::Strafe, .distanceInches = distanceInches,
+                    .options = options});
+}
+
+MotionResult Chassis::pivotTurn(double headingDegrees, const LocalOffset& pivotPoint,
+                                const MotionOptions& options) {
+  return runMotion({.kind = MotionKind::PivotTurn,
+                    .target = {0.0, 0.0, headingDegrees},
+                    .pivotAboutPoint = true,
+                    .pivotPoint = pivotPoint,
+                    .options = options});
+}
+
 MotionResult Chassis::runMotion(MotionCommand command) {
   if (!m_tasksStarted) {
     return MotionResult::NotCalibrated;
+  }
+  if (!supports(command)) {
+    return refuseUnsupported(command);
   }
   command.options.timeoutMs = command.options.timeoutMs.value_or(m_config.limits.defaultTimeoutMs);
   command.options.allowDegraded = command.options.allowDegraded || m_allowDegraded.load();
@@ -260,6 +278,26 @@ MotionResult Chassis::runMotion(MotionCommand command) {
     return MotionResult::Started;
   }
   return m_motion.waitUntilDone(id);
+}
+
+// Strafing needs a wheel that pushes sideways; a pivot point off a tank's axle line needs
+// sideways motion too (SPEC 20.9, 20.10).
+bool Chassis::supports(const MotionCommand& command) const {
+  if (command.kind == MotionKind::Strafe) {
+    return m_kinematics.canStrafe();
+  }
+  if (command.kind == MotionKind::PivotTurn && command.pivotAboutPoint) {
+    return m_kinematics.canPivotAbout(command.pivotPoint);
+  }
+  return true;
+}
+
+// The motion never starts, but the black box still records it (SPEC section 9).
+MotionResult Chassis::refuseUnsupported(const MotionCommand& command) {
+  const Pose pose = getPose();
+  m_history.add({command.kind, command.target, pose, pose, MotionResult::Unsupported,
+                 pros::millis(), 0});
+  return MotionResult::Unsupported;
 }
 
 bool Chassis::waitUntil(double progress) {
@@ -285,6 +323,39 @@ void Chassis::tank(double leftStick, double rightStick) {
 
 void Chassis::arcade(double forwardStick, double turnStick) {
   m_motion.drive(m_driver.arcade(forwardStick, turnStick));
+}
+
+void Chassis::holonomic(double forwardStick, double strafeStick, double turnStick,
+                        const HolonomicOptions& options) {
+  const bool fieldCentric =
+      options.fieldCentric.value_or(m_driveMode.load() == DriveMode::FieldCentric);
+  if (fieldCentric && m_tasksStarted && !m_kinematics.canStrafe()) {
+    m_fieldCentricIgnored.store(true);
+  } else if (fieldCentric) {
+    const OdometrySnapshot odometry = m_odometry.snapshot();
+    if (fieldHeadingAvailable(odometry)) {
+      const double heading = odometry.state.pose.headingDegrees - m_fieldForwardDegrees.load();
+      const StickVector robot = fieldCentricSticks(forwardStick, strafeStick, heading);
+      forwardStick = robot.forward;
+      strafeStick = robot.strafe;
+    }
+  }
+  m_motion.drive(m_driver.holonomic(forwardStick, strafeStick, turnStick));
+}
+
+void Chassis::setDriveMode(DriveMode mode) {
+  m_driveMode.store(mode);
+  if (mode == DriveMode::FieldCentric && m_tasksStarted && !m_kinematics.canStrafe()) {
+    m_fieldCentricIgnored.store(true);
+  }
+}
+
+void Chassis::resetFieldHeading() { m_fieldForwardDegrees.store(getPose().headingDegrees); }
+
+// Field-centric needs a heading it can trust: a configured IMU that hasn't faulted.
+bool Chassis::fieldHeadingAvailable(const OdometrySnapshot& odometry) const {
+  const ImuConfig* imu = m_config.sensors.imu;
+  return imu != nullptr && imu->sensor != nullptr && !odometry.imuFaulted;
 }
 
 void Chassis::driveMillivolts(std::int32_t leftMillivolts, std::int32_t rightMillivolts) {

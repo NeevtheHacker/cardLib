@@ -46,6 +46,7 @@ struct DisplayData {
   OdometrySnapshot odometry = {};
   MotionStatus motion = {};
   StartupReport startup = {};
+  bool fieldCentricIgnored = false;
   const char* calibrationSource = "";
   Gains gains = {};
   std::size_t tunerField = 0;

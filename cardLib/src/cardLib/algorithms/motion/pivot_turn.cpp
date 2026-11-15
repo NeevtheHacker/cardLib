@@ -15,6 +15,15 @@ PivotTurn::PivotTurn(const PivotTurnSettings& settings)
 void PivotTurn::configure(double headingDegrees, Side lockedSide, const MotionOptions& options) {
   m_targetHeadingDegrees = headingDegrees;
   m_lockedSide = lockedSide;
+  m_aboutPoint = false;
+  m_options = options;
+}
+
+void PivotTurn::configure(double headingDegrees, const LocalOffset& pivot,
+                          const MotionOptions& options) {
+  m_targetHeadingDegrees = headingDegrees;
+  m_pivot = pivot;
+  m_aboutPoint = true;
   m_options = options;
 }
 
@@ -39,7 +48,8 @@ MotionStep PivotTurn::step(const RobotState& state, const MotionTick& tick,
                             mainChannelLimits(m_options, m_settings.exitWindows)};
 
   MotionStep result;
-  result.command = pipeline.updatePivot(turn, m_lockedSide, tick.dtSeconds);
+  result.command = m_aboutPoint ? pipeline.updatePivotAbout(turn, m_pivot, tick.dtSeconds)
+                                : pipeline.updatePivot(turn, m_lockedSide, tick.dtSeconds);
   result.exit = m_exits.check(makeExitInputs(error, state.angularVelocityDegreesPerSecond, state,
                                              tick, m_options.allowDegraded));
   result.progress = std::abs(state.pose.headingDegrees - m_startHeadingDegrees);
