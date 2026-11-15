@@ -52,6 +52,9 @@ const StartupReport& Chassis::initialize() {
       std::min(registry.validate(m_report.portIssues), MAX_STARTUP_PORT_ISSUES);
   initializeDevices();
   m_report.noDrive = m_drive.moduleCount == 0;
+  for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
+    m_report.modulesWithoutMotors += m_drive.modules[i].motors == nullptr ? 1 : 0;
+  }
   checkHeadingSource();
   calibrateImu();
   checkBattery();
@@ -197,8 +200,8 @@ ReadyState Chassis::decideReadyState() const {
     requiredPortFailed =
         requiredPortFailed || m_report.portIssues[i].requirement == Requirement::Required;
   }
-  if (requiredPortFailed || m_report.noDrive || m_report.noHeadingSource ||
-      m_report.imuOrientationMismatch) {
+  if (requiredPortFailed || m_report.noDrive || m_report.modulesWithoutMotors > 0 ||
+      m_report.noHeadingSource || m_report.imuOrientationMismatch) {
     return ReadyState::SensorFault;
   }
   if (m_report.imuCalibrationFailed || m_report.imuDriftTooHigh) {

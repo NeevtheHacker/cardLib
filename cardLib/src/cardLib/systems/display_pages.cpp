@@ -142,6 +142,10 @@ void renderDiagnostics(const DisplayData& data, DisplayScreen& screen) {
   if (startup.noDrive && line < lastFree) {
     setLine(screen[line++], "no drive: use tank()/customDrive()");
   }
+  if (startup.modulesWithoutMotors > 0 && line < lastFree) {
+    setLine(screen[line++], "modules with no motors: %u",
+            static_cast<unsigned>(startup.modulesWithoutMotors));
+  }
   if (startup.noHeadingSource && line < lastFree) {
     setLine(screen[line++], "no heading source (IMU/2 wheels)");
   }

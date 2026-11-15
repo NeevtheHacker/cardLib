@@ -75,7 +75,7 @@ void addDrive(SensorStatusList& list, const ChassisConfig& config, const Startup
   if (drive.moduleCount == 0) {
     return;
   }
-  bool missing = false;
+  bool missing = startup.modulesWithoutMotors > 0;
   for (std::size_t i = 0; i < drive.moduleCount; ++i) {
     const MotorGroup* motors = drive.modules[i].motors;
     for (std::size_t m = 0; motors != nullptr && m < motors->size(); ++m) {
