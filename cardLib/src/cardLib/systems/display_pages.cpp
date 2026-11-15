@@ -104,7 +104,7 @@ void renderPose(const DisplayData& data, DisplayScreen& screen) {
   setLine(screen[0], "x %7.2f   y %7.2f", state.pose.xInches, state.pose.yInches);
   setLine(screen[1], "heading %7.2f deg", wrapDegrees(state.pose.headingDegrees));
   setLine(screen[2], "odom %s%s", healthName(state.health),
-          state.wheelHeadingSuspect ? "  wheel slip?" : "");
+          state.wheelHeadingSuspect || state.driveSlipSuspect ? "  wheel slip?" : "");
   setLine(screen[3], "CAL: %s", data.calibrationSource);
   setLine(screen[4], "v %5.1f side %5.1f w %6.1f", state.linearVelocityInchesPerSecond,
           state.sidewaysVelocityInchesPerSecond, state.angularVelocityDegreesPerSecond);

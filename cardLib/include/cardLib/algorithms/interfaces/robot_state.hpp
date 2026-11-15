@@ -18,6 +18,7 @@ struct RobotState {
   double angularVelocityDegreesPerSecond = 0.0;  // clockwise positive
   OdometryHealth health = OdometryHealth::Ok;
   bool wheelHeadingSuspect = false;  // wheels and IMU disagree (slip or a lifted wheel)
+  bool driveSlipSuspect = false;     // drive wheels disagree with each other (holonomic only)
 };
 
 }  // namespace cardLib

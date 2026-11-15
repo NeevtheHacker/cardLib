@@ -39,6 +39,7 @@ void ArcOdometry::reset(const Pose& startPose) {
   m_sidewaysVelocity.reset();
   m_angularVelocity.reset();
   m_disagreement.reset();
+  m_driveSlip.reset();
   m_hasImuBaseline = false;
 }
 
@@ -46,6 +47,7 @@ RobotState ArcOdometry::update(const SensorFrame& frame) {
   m_degradedThisLoop = false;
   if (m_holonomicDrive) {
     m_driveMotion = driveBodyMotion(frame);
+    m_driveSlip.update(m_driveMotion.valid ? m_driveMotion.residualInches : 0.0);
   }
   const HeadingChange heading = headingChange(frame);
   const std::optional<double> forward = forwardChange(frame, heading.radians);
@@ -62,6 +64,7 @@ RobotState ArcOdometry::update(const SensorFrame& frame) {
     m_state.health = OdometryHealth::Ok;
   }
   m_state.wheelHeadingSuspect = m_disagreement.suspect();
+  m_state.driveSlipSuspect = m_driveSlip.suspect();
   return m_state;
 }
 

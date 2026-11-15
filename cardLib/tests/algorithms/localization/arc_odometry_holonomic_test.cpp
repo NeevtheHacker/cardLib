@@ -108,3 +108,49 @@ TEST_CASE("a tank's kinematics leave the tank odometry exactly as it was") {
   CHECK(a.pose.yInches == b.pose.yInches);
   CHECK(a.health == b.health);
 }
+
+TEST_CASE("holonomic drive: a slipping wheel raises driveSlipSuspect; agreeing wheels don't") {
+  ArcOdometry odometry(xDriveOdometry(true));
+  RobotState state;
+  for (int i = 0; i < 20; ++i) {
+    SensorFrame frame = driveFrame(0.0, 0.5, 0.0);
+    frame.imuReadOk = true;
+    frame.horizontalWheel = {0.0, true};
+    state = odometry.update(frame);
+  }
+  CHECK_FALSE(state.driveSlipSuspect);
+
+  // Front left spins 0.4 in a loop more than the others allow: residual 0.1 in on an X-drive.
+  for (int i = 0; i < 10; ++i) {
+    SensorFrame frame = driveFrame(0.0, 0.5, 0.0);
+    frame.driveWheels[0].inches += 0.4;
+    frame.imuReadOk = true;
+    frame.horizontalWheel = {0.0, true};
+    state = odometry.update(frame);
+  }
+  CHECK(state.driveSlipSuspect);
+
+  odometry.reset({});
+  SensorFrame frame = driveFrame(0.0, 0.5, 0.0);
+  frame.imuReadOk = true;
+  frame.horizontalWheel = {0.0, true};
+  CHECK_FALSE(odometry.update(frame).driveSlipSuspect);
+}
+
+TEST_CASE("a tank never raises driveSlipSuspect: two wheels always fit exactly") {
+  ArcOdometry odometry({.hasImu = true, .effectiveTrackWidthInches = 12.0,
+                        .driveKinematics = DriveKinematics{{-6.0, 0.0, 0.0, 60.0},
+                                                           {6.0, 0.0, 0.0, 60.0}}});
+  RobotState state;
+  for (int i = 0; i < 20; ++i) {
+    SensorFrame frame;
+    frame.imuReadOk = true;
+    frame.leftDrive = {0.9, true};
+    frame.rightDrive = {0.1, true};
+    frame.driveWheelCount = 2;
+    frame.driveWheels[0] = {0.9, true};
+    frame.driveWheels[1] = {0.1, true};
+    state = odometry.update(frame);
+  }
+  CHECK_FALSE(state.driveSlipSuspect);
+}

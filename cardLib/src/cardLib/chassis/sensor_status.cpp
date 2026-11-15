@@ -82,7 +82,8 @@ void addDrive(SensorStatusList& list, const ChassisConfig& config, const Startup
       missing = missing || missingAtStartup(startup, nullptr, motors->motor(m).port);
     }
   }
-  const bool encoderFault = odometry.leftDriveFaulted || odometry.rightDriveFaulted;
+  const bool encoderFault = odometry.leftDriveFaulted || odometry.rightDriveFaulted ||
+                            odometry.state.driveSlipSuspect;
   add(list, "drive", statusOf(missing, odometry.driveMotorMissing, encoderFault));
 }
 

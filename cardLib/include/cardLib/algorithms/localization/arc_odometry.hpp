@@ -9,6 +9,7 @@
 
 #include "cardLib/algorithms/control/drive_kinematics.hpp"
 #include "cardLib/algorithms/interfaces/pose_estimator.hpp"
+#include "cardLib/algorithms/localization/drive_slip_check.hpp"
 #include "cardLib/algorithms/localization/heading_disagreement.hpp"
 #include "cardLib/algorithms/math/ema_filter.hpp"
 
@@ -69,6 +70,7 @@ class ArcOdometry : public PoseEstimator {
   bool m_holonomicDrive = false;  // some drive wheel rolls sideways: use forward kinematics
   BodyMotion m_driveMotion = {};  // this loop's forward-kinematics result (holonomic only)
   HeadingDisagreement m_disagreement;
+  DriveSlipCheck m_driveSlip;  // fed the forward-kinematics residual (holonomic only)
   double m_lastImuRotationDegrees = 0.0;
   bool m_hasImuBaseline = false;
   bool m_degradedThisLoop = false;
