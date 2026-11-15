@@ -83,6 +83,32 @@ TEST_CASE("translationToward turns field directions into robot directions") {
   CHECK(channels.strafe.speed == doctest::Approx(0.0).epsilon(1e-9));
 }
 
+TEST_CASE("translationToward keeps both channels within maxSpeed on a slow-strafing drive") {
+  constexpr DriveKinematics SLOW_STRAFE{
+      {-6.0, 0.0, 0.0, CENTER_TOP}, {6.0, 0.0, 0.0, CENTER_TOP}, {0.0, 0.0, 90.0, CENTER_TOP / 2}};
+  REQUIRE(SLOW_STRAFE.maxStrafeInchesPerSecond() < SLOW_STRAFE.maxForwardInchesPerSecond());
+
+  const TranslationChannels right =
+      translationToward({0, 0, 0}, {1.0, 0.0}, 80.0, SLOW_STRAFE, 80.0);
+  CHECK(limitSpeed(right.strafe) == doctest::Approx(80.0));
+  CHECK(limitSpeed(right.forward) == doctest::Approx(0.0).epsilon(1e-9));
+
+  const TranslationChannels diagonal =
+      translationToward({0, 0, 0}, {0.8, 0.6}, 80.0, SLOW_STRAFE, 80.0);
+  const double forward = limitSpeed(diagonal.forward);
+  const double strafe = limitSpeed(diagonal.strafe);
+  CHECK(std::max(std::abs(forward), std::abs(strafe)) == doctest::Approx(80.0));
+  const double forwardInchesPerSecond = forward / 127.0 * SLOW_STRAFE.maxForwardInchesPerSecond();
+  const double rightInchesPerSecond = strafe / 127.0 * SLOW_STRAFE.maxStrafeInchesPerSecond();
+  CHECK(rightInchesPerSecond / forwardInchesPerSecond == doctest::Approx(0.8 / 0.6));
+}
+
+TEST_CASE("translationToward leaves channels under maxSpeed unchanged") {
+  const TranslationChannels channels =
+      translationToward({0, 0, 0}, {0.0, 1.0}, 40.0, ASTERISK, 127.0);
+  CHECK(limitSpeed(channels.forward) == doctest::Approx(40.0));
+}
+
 TEST_CASE("holonomic moveToPoint holds the start heading unless told otherwise") {
   HolonomicMoveToPoint move({.translationGains = {.kP = 5.0}, .headingGains = {.kP = 2.0}});
   move.configure({10.0, 0.0}, {});

@@ -3,6 +3,7 @@
 // Owns: nothing beyond HolonomicMoveToPoint's own state.
 #include "cardLib/algorithms/motion/holonomic_move_to_point.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include "cardLib/algorithms/math/angle.hpp"
@@ -20,8 +21,16 @@ TranslationChannels translationToward(const Pose& pose, const Point& fieldDirect
   const double maxStrafe = kinematics.maxStrafeInchesPerSecond();
   const double strafeScale =
       maxStrafe > 0.0 ? kinematics.maxForwardInchesPerSecond() / maxStrafe : 0.0;
-  return {{speed * local.forwardInches, local.forwardInches, {.maxSpeed = maxSpeed}},
-          {speed * local.rightInches * strafeScale, local.rightInches, {.maxSpeed = MAX_SPEED}}};
+  double forward = speed * local.forwardInches;
+  double strafe = speed * local.rightInches * strafeScale;
+  const double largest = std::max(std::abs(forward), std::abs(strafe));
+  const double cap = std::min(maxSpeed, MAX_SPEED);
+  if (largest > cap) {
+    forward *= cap / largest;
+    strafe *= cap / largest;
+  }
+  return {{forward, local.forwardInches, {.maxSpeed = maxSpeed}},
+          {strafe, local.rightInches, {.maxSpeed = maxSpeed}}};
 }
 
 HolonomicMoveToPoint::HolonomicMoveToPoint(const HolonomicMoveToPointSettings& settings)
