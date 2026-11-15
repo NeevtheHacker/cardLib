@@ -15,6 +15,7 @@
 *.yaml text
 *.txt text
 *.json text
+*.py text
 *.pros text
 *.mk text
 Makefile text

@@ -10,8 +10,15 @@ MotorGroup(std::initializer_list<MotorConfig> motors, const char* role = "motor 
 
 | Member | Description |
 |---|---|
-| `moveMillivolts(int32_t mv)` | −12000 to 12000 |
+| `moveMillivolts(int32_t mv)` | −12000 to 12000 on every motor |
 | `stop(BrakeMode mode)` | Stop with a brake mode |
+| `std::optional<double> readDegrees()` | Output shaft angle: the average change of the motors that answered, added to a running total, so a motor dropping out never makes it jump. Empty if none answered |
+| `bool reset()` | Zeroes the angle |
+| `velocityRpm(size_t i)`, `currentAmps(size_t i)`, `temperatureCelsius(size_t i)` | Motor `i`'s output speed (signed), current and temperature; each `std::optional` |
+| `size()`, `motor(size_t i)` | Motor count, and motor `i`'s `MotorConfig` |
+| `answeringCount()`, `anyMotorFaulted()` | Motors that answered the last read; `true` once any motor missed three reads in a row |
+
+The chassis initializes its own drive and tracking groups. For a mechanism group you drive yourself, call `initialize()` once in `initialize()`; it sets encoder units and cartridges.
 
 ### MotorConfig
 

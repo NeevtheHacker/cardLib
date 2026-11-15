@@ -73,7 +73,7 @@ testModes.runPending();
 | Test | Do this | Pass when |
 |---|---|---|
 | Port / direction | Wheels off the ground | Every motor spins the way the screen says |
-| Sign check | Push the robot by hand | Forward raises y, clockwise raises heading, pushing right raises x |
+| Sign check | Start it, push the robot by hand, run it again | Pushed forward, the vertical wheels and drive read positive; turned clockwise, the IMU does; pushed right, the horizontal wheel does |
 | Tape box | Drive a closed loop | The end error is small |
 
 ## Terminal log and black box

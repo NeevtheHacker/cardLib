@@ -44,6 +44,9 @@ This file mirrors `docs/project/changelog.md`.
 - `GpsSensor`, `resetFromWall()` and `resetFromGps()`, and a Sensors page showing every sensor as
   OK, Suspect, Faulted or Missing.
 - `LICENSE`, `README.md`, this changelog, `.gitignore` and fuller `.gitattributes`.
+- The documentation site config (`mkdocs.yml`, GitHub Pages workflow), an "At a glance" page
+  listing every function a team calls, a "Checking a new robot" page, and `tools/check_docs.py`,
+  which fails when the reference misses a public `Chassis` function or drive preset.
 - Laptop tests now run the chassis code (driver control, resets, sensor status, the port check)
   against fake PROS tasks and devices.
 

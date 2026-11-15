@@ -80,9 +80,10 @@ void opcontrol() {
 ## Documentation
 
 The guides and API reference are in [`docs/`](docs/index.md), built with MkDocs Material and
-published to GitHub Pages. Start with [Installation](docs/getting-started/installation.md) and
-[Your first project](docs/getting-started/first-project.md). Holonomic drives are covered in
-[tutorial 10](docs/tutorials/10-holonomic.md).
+published to GitHub Pages. Start with [Installation](docs/getting-started/installation.md), then
+[At a glance](docs/reference/at-a-glance.md): every function and preset a team calls, one line
+each, with links to the full entries. After that, [Your first project](docs/getting-started/first-project.md)
+and the tutorials. Holonomic drives are covered in [tutorial 10](docs/tutorials/10-holonomic.md).
 
 ## Repository layout
 
@@ -92,7 +93,7 @@ published to GitHub Pages. Start with [Installation](docs/getting-started/instal
 | `cardLib/tests/` | Laptop tests (doctest): `cmake -S tests -B build/tests && cmake --build build/tests && ctest --test-dir build/tests` |
 | `starter/` | The starter project, with cardLib applied. Refresh it with `tools/refresh_starter.sh`. |
 | `docs/` | The documentation site (`mkdocs.yml` at the root). |
-| `tools/` | Maintainer scripts, such as `refresh_starter.sh`. |
+| `tools/` | Maintainer scripts: `refresh_starter.sh` and `check_docs.py` (docs cover the API). |
 
 ## License and credits
 

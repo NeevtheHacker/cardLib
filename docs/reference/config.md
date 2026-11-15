@@ -31,6 +31,52 @@ config.drive = cardLib::tank(leftDrive, rightDrive, cardLib::Omniwheel::NEW_325,
 
 A `DriveModule` is `{motors, wheelDiameterInches, gearRatio, xInches, yInches, rollAngleDegrees}`. Presets build it from a `WheelModule`, whose diameter, gearing and roll angle are required.
 
+## Drive presets
+
+`#include "cardLib/api.hpp"` · from `cardLib/chassis/drive_presets.hpp`
+
+Each preset returns a `DriveConfig` for `config.drive`. They are all `constexpr`, so a drive declared `constexpr` at namespace scope can be checked with `static_assert` before the code is compiled. Usage and worked examples: [Holonomic drives](../tutorials/10-holonomic.md#presets).
+
+| Function | Description |
+|---|---|
+| `DriveConfig tank(MotorGroup& left, MotorGroup& right, double wheelDiameterInches, Gearing gearing, double trackWidthInches)` | A tank: one module per side at x = −W/2 and +W/2, rolling forward. Also sets `left` and `right`. |
+| `DriveConfig asterisk(const AsteriskConfig& config)` | Four 45° corners plus two forward-rolling center wheels. |
+| `DriveConfig customDrive(std::initializer_list<WheelModule> modules)` | Any drive: list the modules in the standard order (front-left, front-right, back-left, back-right, center-left, center-right). Modules past 8 are ignored. |
+| `SpeedMatchReport speedMatch(const DriveConfig& drive, Cartridge cartridge, MotorType type = MotorType::V5_11W)` | Top forward, strafe and spin speeds, each wheel's forward duty and the overall `mismatch`. Pass the cartridge: a motor group can't be read at compile time. |
+| `bool requireSpeedMatchWithin(const SpeedMatchReport& report, double fraction)` | `true` if the faster wheels are cut back by at most `fraction` (e.g. `0.10`). For `static_assert`. |
+| `DriveKinematics presetKinematics(const DriveConfig& drive, Cartridge cartridge, MotorType type = MotorType::V5_11W)` | The full kinematics behind `speedMatch`. You won't normally need it. |
+| `DriveModule toDriveModule(const WheelModule& module)` | Turns one `WheelModule` into a `DriveModule`. The presets use it; you won't normally call it. |
+
+```cpp
+constexpr cardLib::DriveConfig DRIVE = cardLib::asterisk({ /* ... */ });
+static_assert(cardLib::requireSpeedMatchWithin(
+                  cardLib::speedMatch(DRIVE, cardLib::Cartridge::Blue600), 0.10),
+              "corner and center wheels disagree by more than 10%");
+```
+
+### WheelModule
+
+| Field | Default | Meaning |
+|---|---|---|
+| `MotorGroup* motors` | `nullptr` | The motor group driving this wheel |
+| `wheelDiameterInches` | **required** | `Omniwheel::` constant or your measured value |
+| `Gearing gearing` | **required** | `{motorTeeth, wheelTeeth}` or a ratio |
+| `xInches`, `yInches` | `0` | Wheel contact point from the robot center (+x right, +y forward) |
+| `rollAngleDegrees` | **required** | Which way a positive command pushes the robot, clockwise from forward |
+
+### AsteriskConfig
+
+| Field | Meaning |
+|---|---|
+| `std::array<MotorGroup*, 4> corners` | Front-left, front-right, back-left, back-right |
+| `cornerWheel`, `Gearing cornerGearing` | Corner wheel diameter and gearing (**required**) |
+| `cornerHalfWidthInches`, `cornerHalfLengthInches` | Corner contact point right of and forward of center (**required**) |
+| `std::array<MotorGroup*, 2> centers` | Center-left, center-right |
+| `centerWheel`, `Gearing centerGearing` | Center wheel diameter and gearing (**required**) |
+| `centerHalfWidthInches` | Center contact point right of center (**required**) |
+
+Front-left and back-right roll at +45°, front-right and back-left at −45°.
+
 ## SensorConfig
 
 | Field | Default |

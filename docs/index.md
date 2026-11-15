@@ -37,8 +37,10 @@ void autonomous() {
 ## Where to start
 
 1. [Install cardLib](getting-started/installation.md) into a new or existing PROS project.
-2. Follow [Your first project](getting-started/first-project.md) to describe your robot.
-3. Work through the tutorials in order. Each one ends with something you can test on the robot.
+2. Read the library in five minutes: [At a glance](reference/at-a-glance.md) lists every function and preset a team calls, one line each, with links to the full entries.
+3. Follow [Your first project](getting-started/first-project.md) to describe your robot.
+   Then run [Checking a new robot](getting-started/checking-a-new-robot.md) before you tune anything.
+4. Work through the tutorials in order. Each one ends with something you can test on the robot.
 
 ## Conventions in one line
 

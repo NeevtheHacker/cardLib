@@ -58,6 +58,7 @@ nav:
   - Getting started:
       - Installation: getting-started/installation.md
       - Your first project: getting-started/first-project.md
+      - Checking a new robot: getting-started/checking-a-new-robot.md
   - Tutorials:
       - 1. Conventions: tutorials/1-conventions.md
       - 2. Drivetrain setup: tutorials/2-drivetrain.md
@@ -70,6 +71,7 @@ nav:
       - 9. Autons and the screen: tutorials/9-autons-screen.md
       - 10. Holonomic drives (0.2): tutorials/10-holonomic.md
   - API reference:
+      - At a glance: reference/at-a-glance.md
       - Chassis: reference/chassis.md
       - Options and results: reference/options-results.md
       - Configuration: reference/config.md
@@ -79,3 +81,10 @@ nav:
       - Changelog: project/changelog.md
       - Credits: project/credits.md
 use_directory_urls: false
+
+# Broken links and missing #anchors fail the strict build.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
