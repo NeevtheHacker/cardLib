@@ -29,3 +29,9 @@ Makefile text
 *.zip binary
 *.png binary
 *.jpg binary
+
+# Vendored PROS and LVGL headers: keep them out of GitHub's language stats
+cardLib/include/liblvgl/** linguist-vendored
+starter/include/liblvgl/** linguist-vendored
+cardLib/include/pros/** linguist-vendored
+starter/include/pros/** linguist-vendored
