@@ -149,7 +149,7 @@ void opcontrol() {
 }
 ```
 
-On a tank, field-centric is ignored: `chassis.fieldCentricIgnored()` turns `true` and the Diagnostics page says so.
+On a tank, field-centric is ignored: `chassis.fieldCentricIgnored()` turns `true` and the Diagnostics page says so (at `initialize()` already, if the mode was set before it).
 
 ## Odometry on a holonomic robot
 

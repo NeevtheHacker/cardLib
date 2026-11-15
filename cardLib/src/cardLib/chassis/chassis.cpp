@@ -54,6 +54,12 @@ const StartupReport& Chassis::initialize() {
   for (std::size_t i = 0; i < m_drive.moduleCount; ++i) {
     m_report.modulesWithoutMotors += m_drive.modules[i].motors == nullptr ? 1 : 0;
   }
+  // Field-centric chosen before initialize() on a drive that can't strafe: say so now, not at
+  // the first holonomic() call.
+  if (m_drive.moduleCount > 0 && m_driveMode.load() == DriveMode::FieldCentric &&
+      !m_kinematics.canStrafe()) {
+    m_fieldCentricIgnored.store(true);
+  }
   checkHeadingSource();
   calibrateImu();
   checkBattery();

@@ -137,6 +137,27 @@ TEST_CASE("on a tank, field-centric is ignored and reported, and strafe is Unsup
   CHECK(chassis.pivotTurn(90.0, LocalOffset{0.0, 6.0}) == MotionResult::Unsupported);
 }
 
+TEST_CASE("setDriveMode(FieldCentric) before initialize() on a tank is reported by initialize()") {
+  fake::reset();
+  fake::TankRobot robot;
+  Chassis chassis(robot.config());
+  fake::TaskGuard guard;
+  chassis.setDriveMode(DriveMode::FieldCentric);
+  CHECK_FALSE(chassis.fieldCentricIgnored());
+  REQUIRE(chassis.initialize().state == ReadyState::Ready);
+  CHECK(chassis.fieldCentricIgnored());
+}
+
+TEST_CASE("field-centric set before initialize() on a drive that strafes is not flagged") {
+  fake::reset();
+  Robot robot;
+  Chassis chassis(robot.config());
+  fake::TaskGuard guard;
+  chassis.setDriveMode(DriveMode::FieldCentric);
+  REQUIRE(chassis.initialize().state == ReadyState::Ready);
+  CHECK_FALSE(chassis.fieldCentricIgnored());
+}
+
 TEST_CASE("setDriveMode(FieldCentric) on a tank is reported at once") {
   fake::reset();
   fake::TankRobot robot;

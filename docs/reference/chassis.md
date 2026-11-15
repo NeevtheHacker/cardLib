@@ -74,7 +74,7 @@ These act on the most recent motion.
 | `void holonomic(double forward, double strafe, double turn, const HolonomicOptions& = {})` | −127 to 127 each, on any drive. Uses the drive mode, or `{.fieldCentric = true/false}` for this call. Cancels a running motion. New in 0.2. |
 | `void setDriveMode(DriveMode mode)` / `DriveMode driveMode() const` | `RobotCentric` (default) or `FieldCentric`. Field-centric falls back to robot-centric if the IMU faults. |
 | `void resetFieldHeading()` | Makes the way the robot faces now the field-centric "forward". |
-| `bool fieldCentricIgnored() const` | `true` once field-centric was asked for on a drive that can't strafe. |
+| `bool fieldCentricIgnored() const` | `true` once field-centric was asked for on a drive that can't strafe: by `holonomic()`, `setDriveMode()`, or at `initialize()` if the mode was set before it. |
 | `void driveMillivolts(int32_t left, int32_t right)` | Raw voltages, no curves: every left module gets `left`, every right module `right`. For tests and calibration. |
 | `void driveMillivolts(std::span<const int32_t> wheelMillivolts)` | Raw voltage per wheel module, in the drive's module order; missing entries get 0. |
 | `void setDriverBrake(BrakeMode mode)` / `BrakeMode driverBrake() const` | Brake mode when the sticks are centered. |
