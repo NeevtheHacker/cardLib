@@ -34,10 +34,18 @@ This file mirrors `docs/project/changelog.md`.
   `resetFieldHeading()` and a per-call `{.fieldCentric = true}`.
 - `RobotState` gains `sidewaysVelocityInchesPerSecond`; drive-encoder odometry for holonomic
   drives through least-squares forward kinematics.
-- The port and direction check spins each wheel module alone.
+- `RobotState::driveSlipSuspect`: on a drive with more wheels than it needs, a warning when the
+  wheels disagree with each other (the forward-kinematics residual), shown as "wheel slip?".
+- The port and direction check spins each wheel module alone, and the Tuner page shows its
+  voltages.
+- Calibration on holonomic drives: the push run's drive scale comes from forward kinematics;
+  the effective track width is skipped there.
+- Startup reports a wheel module with no motor group, and a config with no drive, as faults.
 - `GpsSensor`, `resetFromWall()` and `resetFromGps()`, and a Sensors page showing every sensor as
   OK, Suspect, Faulted or Missing.
 - `LICENSE`, `README.md`, this changelog, `.gitignore` and fuller `.gitattributes`.
+- Laptop tests now run the chassis code (driver control, resets, sensor status, the port check)
+  against fake PROS tasks and devices.
 
 ## 0.1.0
 
